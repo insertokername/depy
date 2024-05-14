@@ -5,6 +5,7 @@ use manifest::Manifest;
 mod manifest;
 mod path;
 mod shell;
+mod parse_json_manifest;
 
 fn main() {
     let man = if let Ok(man) = Manifest::from_str(include_str!("example.json")){
