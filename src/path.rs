@@ -5,7 +5,6 @@ pub struct Path {
     pub args: Option<String>,
 }
 
-
 fn unwrap_or_gracefull<T>(option: Option<T>, found_in_value: &serde_json::Value)->T{
     if let Some(val) = option{
         val
@@ -50,7 +49,7 @@ impl Path {
         }
     }
 
-    /// Get the Path object of a certain bin
+    /// Get the Path objects from a bin attr
     pub fn bin_to_paths(value: &serde_json::Value) -> Vec<Path> {
         if value.is_string() {
             return vec![Path::from_value(value)];

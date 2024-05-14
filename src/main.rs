@@ -17,7 +17,7 @@ fn main() {
     };
 
 
-    println!("{:#?}", man.paths);
+    println!("{:#?}", man.added_paths);
     // shell::make_shell();
 
     // let teste: serde_json::Value = serde_json::from_value(serde_json::from_str("jkf")).unwrap();
