@@ -1,0 +1,43 @@
+also need to implement args somehow :P
+
+TODO:
+  add all env_variables to env
+  add all bins to PATH
+  detect all bin types
+
+global "bin" dict
+
+global "env_add_path" dict
+
+architecture specific bin dict "architecture"
+
+lib type pkgs that don't have a bin or path folder
+
+acmesharp.json
+azure-ps.json
+boost.json
+cacert.json
+clink-completions.json
+clink-flex-prompt.json
+git-up.json
+glfw.json
+importexcel.json
+jdtls.json
+modern7z.json
+nunit-extension-nunit-project-loader.json
+nunit-extension-nunit-v2-driver.json
+nunit-extension-nunit-v2-result-writer.json
+nunit-extension-teamcity-event-listener.json
+nunit-extension-vs-project-loader.json
+oracle-instant-client-odbc.json
+oracle-instant-client-sdk.json
+oracle-instant-client-sqlplus.json
+pester.json
+powershell-yaml.json
+psgithub.json
+rtools.json
+scoop-shim.json
+terraform-provider-ibm.json
+tesseract-languages.json
+xpdf-tools-lsp.json
+z.lua.json
