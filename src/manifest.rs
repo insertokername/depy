@@ -4,14 +4,16 @@ use crate::{parse_json_manifest, path::Path};
 #[derive(Debug)]
 pub struct Manifest {
     pub bin_paths: Vec<Path>,
-    pub added_paths: Vec <Path>
+    pub added_paths: Vec <Path>,
+    pub version: String
 }
 
 impl Manifest {
     pub fn new(manifest_value: &serde_json::Value) -> Result<Manifest, Box<dyn std::error::Error>> {
         let bin_paths = parse_json_manifest::find_all_bin(manifest_value)?;
         let added_paths = parse_json_manifest::find_all_added_paths(manifest_value)?;
-        Ok(Manifest{ bin_paths, added_paths})
+        let version = parse_json_manifest::get_version(manifest_value)?;
+        Ok(Manifest{ bin_paths, added_paths, version})
     }
 
     pub fn from_str(manifest: &str) -> Result<Manifest, Box<dyn std::error::Error>> {

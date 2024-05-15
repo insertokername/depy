@@ -4,6 +4,8 @@ use crate::path::Path;
 pub enum ParseJsonError {
     #[error("Error: Invalid system arch!")]
     InvalidArch,
+    #[error("Error: No version specified in manifest!")]
+    NoVersion
 }
 
 /// gets all binary.exes or scripts that the manifest json requested to be added to the PATH
@@ -44,4 +46,14 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<Path>, 
     }
 
     return Ok(vec!());
+}
+
+/// get the version of a json manifes
+pub fn get_version(json_body: &serde_json::Value) -> Result<String, ParseJsonError> {
+    if let Some(version) = json_body["version"].as_str(){
+        Ok(version.to_string())
+    }
+    else{
+        return Err(ParseJsonError::NoVersion)
+    }
 }
