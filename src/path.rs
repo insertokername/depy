@@ -38,6 +38,7 @@ impl Path {
             if arr.len() >= 2 {
                 alias = Some(unwrap_or_gracefull(arr[1].as_str(), value).to_string());
             }
+
             let mut args: String = "".to_string();
             for i in 2..(arr.len()) {
                 args += arr[i]
@@ -45,7 +46,8 @@ impl Path {
                     .expect(&format!("improper args{i}, in bin {value}"));
                 args += " ";
             }
-            return Path::new(path, alias, Some(args));
+            
+            return Path::new(path, alias, if args.is_empty() {None} else {Some(args)});
         }
     }
 

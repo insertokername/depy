@@ -10,8 +10,10 @@ pub enum ParseJsonError {
 
 /// gets all binary.exes or scripts that the manifest json requested to be added to the PATH
 pub fn find_all_bin(json_body: &serde_json::Value) -> Result<Vec<Path>, ParseJsonError> {
+    let mut out_vec: Vec<Path> = vec![];
+
     if !json_body["bin"].is_null() {
-        return Ok(Path::bin_to_paths(&json_body["bin"]));
+        out_vec.extend(Path::bin_to_paths(&json_body["bin"]));
     }
 
     let arch = match std::env::consts::ARCH {
@@ -21,16 +23,18 @@ pub fn find_all_bin(json_body: &serde_json::Value) -> Result<Vec<Path>, ParseJso
         _ => return Err(ParseJsonError::InvalidArch),
     };
     if !json_body["architecture"][arch]["bin"].is_null() {
-        return Ok(Path::bin_to_paths(&json_body["architecture"][arch]["bin"]));
+        out_vec.extend(Path::bin_to_paths(&json_body["architecture"][arch]["bin"]));
     }
 
-    return Ok(vec![]);
+    return Ok(out_vec);
 }
 
 /// gets all added paths that the manifest json SPECIFICALLY requested to be added to the PATH
 pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<Path>, ParseJsonError> {
+    let mut out_vec: Vec<Path> = vec![];
+    
     if !json_body["env_add_path"].is_null() {
-        return Ok(Path::bin_to_paths(&json_body["env_add_path"]));
+        out_vec.extend(Path::bin_to_paths(&json_body["env_add_path"]));
     }
 
     let arch = match std::env::consts::ARCH {
@@ -40,12 +44,12 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<Path>, 
         _ => return Err(ParseJsonError::InvalidArch),
     };
     if !json_body["architecture"][arch]["env_add_path"].is_null() {
-        return Ok(Path::bin_to_paths(
+        out_vec.extend(Path::bin_to_paths(
             &json_body["architecture"][arch]["env_add_path"],
         ));
     }
 
-    return Ok(vec![]);
+    return Ok(out_vec);
 }
 
 /// get the version of a json manifes
@@ -58,8 +62,10 @@ pub fn get_version(json_body: &serde_json::Value) -> Result<String, ParseJsonErr
 }
 
 pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<EnvVar>, ParseJsonError> {
+    let mut out_vec: Vec<EnvVar> = vec![];
+    
     if !json_body["env_set"].is_null() {
-        return Ok(EnvVar::from_multiple_values(&json_body["env_set"]).unwrap());
+        out_vec.extend(EnvVar::from_multiple_values(&json_body["env_set"]).unwrap());
     }
 
     let arch = match std::env::consts::ARCH {
@@ -70,10 +76,10 @@ pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<EnvVar>, P
     };
 
     if !json_body["architecture"][arch]["env_set"].is_null() {
-        return Ok(
+        out_vec.extend(
             EnvVar::from_multiple_values(&json_body["architecture"][arch]["env_set"]).unwrap(),
         );
     }
 
-    return Ok(vec![]);
+    return Ok(out_vec);
 }

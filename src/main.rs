@@ -2,6 +2,7 @@ use std::process::exit;
 
 use manifest::Manifest;
 
+mod tests;
 mod env_var;
 mod manifest;
 mod parse_json_manifest;
