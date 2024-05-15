@@ -1,7 +1,7 @@
 
 #[cfg(test)]
 mod manifest_test{
-    use crate::Manifest;
+    use crate::manifest::Manifest;
 
     #[test]
     fn correct_manifest_build(){

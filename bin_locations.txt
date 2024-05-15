@@ -1,17 +1,40 @@
+TODO:
+  test on 32 bit machines and MAYBE aarch
+  initialize a shell with a specific env var set
+  given a bucket github url download a manifest from it
+  ADD SPECIAL SHIM STRUCT INSTEAD OF USING PATH FOR BOTH
+
+
+general install proccess routine:
+  change scoop install dir to depy/scoop - just change env var
+  rm every shim in alter install folder - just rm *
+
+  install the app if not allready installed - req to know version to be installed bucket and read the output to check if installed
+  after repeat until all deps are installed 
+
+  rm every shim in alter install folder - just rm *
+
+  go to all dep manifests reinstate shims in a local folder - req depy/scoop location
+  update all paths - just change env var
+  update special path to depy/scoop/shims - just change env var
+
+  after this if the shell exits it is guaranteed that there is no way any leftover paths exist.
+
+
 also need to implement args somehow :P
 
-TODO:
-  add all env_variables to env
-  add all bins to PATH
-  detect all bin types
+DONE TODO:
+DONE   add all env_variables to env
+DONE   add all bins to PATH
+DONE   detect all bin types
 
-global "bin" dict
-
-global "env_add_path" dict
-
-architecture specific bin dict "architecture"
-
-lib type pkgs that don't have a bin or path folder
+DONE global "bin" dict
+DONE 
+DONE global "env_add_path" dict
+DONE 
+DONE architecture specific bin dict "architecture"
+DONE 
+DONE lib type pkgs that don't have a bin or path folder
 
 acmesharp.json
 azure-ps.json

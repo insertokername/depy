@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-cmd_lib = "1.9.3"
+duct = "0.13"
 serde_json = "1.0.117"
 thiserror = "1.0.60"
