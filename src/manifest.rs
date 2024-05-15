@@ -1,7 +1,7 @@
 use crate::{env_var::EnvVar, parse_json_manifest, path::Path};
 
 /// Struct version of a manifest.json
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Manifest {
     pub bin_paths: Vec<Path>,
     pub added_paths: Vec<Path>,

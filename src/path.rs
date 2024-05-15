@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Path {
     pub path: String,
     pub alias: Option<String>,
@@ -47,7 +47,7 @@ impl Path {
                 args += " ";
             }
             
-            return Path::new(path, alias, if args.is_empty() {None} else {Some(args)});
+            return Path::new(path, alias, if args.is_empty() {None} else {Some(args.trim_end().to_string())});
         }
     }
 
