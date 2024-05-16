@@ -36,8 +36,6 @@ pub fn init_depy_dir() -> Result<(), Box<dyn std::error::Error>> {
     if !shimpath.exists(){
         std::fs::create_dir_all(&shimpath).expect("Failed to create depy/scoop/shims dir! Check read/write privileges!");
     }
-    
-    clear_directory(&shimpath).expect("Failed to clear contents of shims folder! Check read/write privileges!");
 
     let str_apppath = [&str_path,"\\apps"].concat();
     let apppath = std::path::Path::new(&str_apppath);
@@ -54,5 +52,15 @@ pub fn init_depy_dir() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     
+    Ok(())
+}
+
+
+pub fn cleanup_shims() -> Result<(), Box<dyn std::error::Error>>{
+    let str_shimpath = [&get_depy_dir_location(),"\\shims"].concat();
+    let shimpath = std::path::Path::new(&str_shimpath);
+    if shimpath.exists(){
+        clear_directory(&shimpath)?;
+    };
     Ok(())
 }

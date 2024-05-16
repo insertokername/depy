@@ -1,3 +1,5 @@
+use crate::{dir::cleanup_shims, shell::init_depy};
+
 mod tests;
 mod env_var;
 mod manifest;
@@ -15,7 +17,9 @@ fn main() {
     // };
 
     // println!("{:#?}", man.env_vars);
-    let temp = shell::enter_shell();
+    init_depy().unwrap();
+    let temp = shell::clean_install("nodejs", "22.2.0");
     print!("{:#?}",temp);
+    cleanup_shims().unwrap();
     // let teste: serde_json::Value = serde_json::from_value(serde_json::from_str("jkf")).unwrap();
 }
