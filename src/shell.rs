@@ -1,6 +1,6 @@
 use crate::{dir, manifest};
 
-use std::io::{BufRead, Write};
+use std::{env, io::{BufRead, Write}};
 
 /// updates scoop and creates depy directory if doesn't allready exist
 pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
@@ -72,6 +72,10 @@ pub fn clean_install(
 }
 
 pub fn make_devshell(manifests: Vec<manifest::Manifest>){
+    let mut env_map: std::collections::HashMap<_, _> = std::env::vars().collect();
+
+    let output = duct::cmd!("sh", "-c", "echo $FOO").full_env(&env_map).read().unwrap();
+
     for man in manifests{
         // first add all paths to the PATH
         // trb sa merem prin manifest la fiecare path si sa merem in insatll folder (depy/scoop/apps/name/version)
@@ -86,5 +90,8 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>){
 
         // set all envs
         // read every set env from the manifest and insert it into a map 
+        // man.env_vars.iter().for_each(f)
+        env_map.insert("FOO".into(), "bar".into());
     }
+    duct::cmd!().full_env(env_map)
 }
