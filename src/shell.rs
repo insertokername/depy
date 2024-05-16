@@ -1,4 +1,4 @@
-use crate::dir;
+use crate::{dir, manifest};
 
 use std::io::{BufRead, Write};
 
@@ -69,4 +69,22 @@ pub fn clean_install(
     }
 
     Ok(())
+}
+
+pub fn make_devshell(manifests: Vec<manifest::Manifest>){
+    for man in manifests{
+        // first add all paths to the PATH
+        // trb sa merem prin manifest la fiecare path si sa merem in insatll folder (depy/scoop/apps/name/version)
+        // adaugam al o variabila numita temp_path
+        // cand instantiem shell-ul prefixuim PATH-ul cu temp_path
+
+        // add all shims to .localshims
+        // add all required shims from the bin attr
+        // clear .localshims if not cleared
+        // move every content of the shim folder to .localshims
+        // add .localshims to temp_path
+
+        // set all envs
+        // read every set env from the manifest and insert it into a map 
+    }
 }

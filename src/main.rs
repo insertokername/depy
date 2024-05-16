@@ -18,8 +18,10 @@ fn main() {
 
     // println!("{:#?}", man.env_vars);
     init_depy().unwrap();
+    let temp = shell::clean_install("python", "3.12.3");
     let temp = shell::clean_install("nodejs", "22.2.0");
     print!("{:#?}",temp);
     cleanup_shims().unwrap();
+    
     // let teste: serde_json::Value = serde_json::from_value(serde_json::from_str("jkf")).unwrap();
 }

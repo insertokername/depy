@@ -36,8 +36,9 @@ mod manifest_test{
 
         let version = "20.584".to_string();
 
+        let name = "pkg_name".to_string();
 
-        let correct = Manifest { bin_paths, added_paths, env_vars, version};
+        let correct = Manifest { version, name, bin_paths, added_paths, env_vars};
         print!("jkfdjkdfjkdf\n{:#?}\nkjdfjkdf",tested_man);
         print!("jkfdjkdfjkdf\n{:#?}\nkjdfjkdf",correct);
         assert_eq!(correct, tested_man);
@@ -87,6 +88,6 @@ mod manifest_test{
         }
         "###;
 
-        Manifest::from_str(body).unwrap()
+        Manifest::from_str(body, "pkg_name".to_string()).unwrap()
     }
 }

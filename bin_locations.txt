@@ -3,16 +3,17 @@ TODO:
   initialize a shell with a specific env var set
   given a bucket github url download a manifest from it
   ADD SPECIAL SHIM STRUCT INSTEAD OF USING PATH FOR BOTH
+  implement special emergency cleanup mode to reset paths
 
 
 general install proccess routine:
   DONE change scoop install dir to depy/scoop - just change env var
   DONE rm every shim in alter install folder - just rm *
 
-  SEMI install the app if not allready installed - req to know version to be installed bucket and read the output to check if installed
+  DONE install the app if not allready installed - req to know version to be installed bucket and read the output to check if installed
   after repeat until all deps are installed 
 
-  rm every shim in alter install folder - just rm *
+  DONE rm every shim in alter install folder - just rm *
 
   go to all dep manifests reinstate shims in a local folder - req depy/scoop location
   update all paths - just change env var
