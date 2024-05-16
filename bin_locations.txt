@@ -6,7 +6,7 @@ TODO:
 
 
 general install proccess routine:
-  change scoop install dir to depy/scoop - just change env var
+  DONE change scoop install dir to depy/scoop - just change env var
   rm every shim in alter install folder - just rm *
 
   install the app if not allready installed - req to know version to be installed bucket and read the output to check if installed
