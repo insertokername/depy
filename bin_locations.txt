@@ -1,10 +1,13 @@
 TODO:
+  check sccesfull install
   test on 32 bit machines and MAYBE aarch
-  initialize a shell with a specific env var set
   given a bucket github url download a manifest from it
   ADD SPECIAL SHIM STRUCT INSTEAD OF USING PATH FOR BOTH
   implement special emergency cleanup mode to reset paths
-
+  maybe change the path adding to use the path made by scoop with use_isolated_path and just append that to the path (not necessary as of now)
+  delete failed .depyenv in error
+  if cancel while running program don't screw up stdout
+  make operations faster by packing them into a single env set thingy
 
 general install proccess routine:
   DONE change scoop install dir to depy/scoop - just change env var

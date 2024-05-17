@@ -17,10 +17,10 @@ fn main() {
     // };
 
     // println!("{:#?}", man.env_vars);
-    // init_depy().unwrap();
     // let _ = shell::clean_install("python", "3.12.3");
     // let _ = shell::clean_install("nodejs", "22.2.0");
-
+    
+    shell::init_depy().unwrap();
     let man = manifest::Manifest::from_str(
         include_str!("python.json"),
         "python".to_string(),
@@ -34,9 +34,18 @@ fn main() {
     )
     .expect("Got an invalid manifest!");
 
+    let man2 = manifest::Manifest::from_str(
+        include_str!("grep.json"),
+        "grep".to_string(),
+        "3.11".to_string(),
+    )
+    .expect("Got an invalid manifest!");
+
     let _ = shell::clean_install(&man.name, &man.version);
     let _ = shell::clean_install(&man1.name, &man1.version);
+    let _ = shell::clean_install(&man2.name, &man2.version);
     cleanup_shims().unwrap();
 
-    make_devshell(vec![man, man1]);
+    make_devshell(vec![man, man1, man2]).expect("couldn't create devshel!");
+    cleanup_shims().unwrap();
 }
