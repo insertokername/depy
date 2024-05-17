@@ -11,11 +11,15 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    pub fn new(manifest_value: &serde_json::Value, name : String) -> Result<Manifest, Box<dyn std::error::Error>> {
+    pub fn new(
+        manifest_value: &serde_json::Value,
+        name: String,
+        version: String,
+    ) -> Result<Manifest, Box<dyn std::error::Error>> {
         let bin_paths = parse_json_manifest::find_all_bin(manifest_value)?;
         let added_paths = parse_json_manifest::find_all_added_paths(manifest_value)?;
         let env_vars = parse_json_manifest::get_env_variables(manifest_value)?;
-        let version = parse_json_manifest::get_version(manifest_value)?;
+        // let version = parse_json_manifest::get_version(manifest_value)?;
         Ok(Manifest {
             version,
             name,
@@ -25,8 +29,12 @@ impl Manifest {
         })
     }
 
-    pub fn from_str(manifest: &str, name: String) -> Result<Manifest, Box<dyn std::error::Error>> {
+    pub fn from_str(
+        manifest: &str,
+        name: String,
+        version: String,
+    ) -> Result<Manifest, Box<dyn std::error::Error>> {
         let parsed_json: serde_json::Value = serde_json::from_str(manifest)?;
-        Ok(Manifest::new(&parsed_json, name)?)
+        Ok(Manifest::new(&parsed_json, name, version)?)
     }
 }

@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub struct EnvVar {
-    name: String,
-    value: String,
+    pub name: String,
+    pub value: String,
 }
 
 #[derive(thiserror::Error, Debug, PartialEq)]
@@ -11,10 +11,7 @@ pub enum ParseJsonError {
 }
 
 impl EnvVar {
-    pub fn new(
-        name: String,
-        value: String,
-    ) -> EnvVar {
+    pub fn new(name: String, value: String) -> EnvVar {
         EnvVar { name, value }
     }
 
