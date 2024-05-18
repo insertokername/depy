@@ -1,40 +1,26 @@
-use crate::{env_var::EnvVar, path::Path};
+use crate::env_var::EnvVar;
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ParseJsonError {
     #[error("Error: Invalid system arch!")]
     InvalidArch,
-    #[error("Error: No version specified in manifest!")]
-    NoVersion,
-}
-
-/// gets all binary.exes or scripts that the manifest json requested to be added to the PATH
-pub fn find_all_bin(json_body: &serde_json::Value) -> Result<Vec<Path>, ParseJsonError> {
-    let mut out_vec: Vec<Path> = vec![];
-
-    if !json_body["bin"].is_null() {
-        out_vec.extend(Path::bin_to_paths(&json_body["bin"]));
-    }
-
-    let arch = match std::env::consts::ARCH {
-        "x86" => "32bit",
-        "x86_64" => "64bit",
-        "aarch64" => "arm64",
-        _ => return Err(ParseJsonError::InvalidArch),
-    };
-    if !json_body["architecture"][arch]["bin"].is_null() {
-        out_vec.extend(Path::bin_to_paths(&json_body["architecture"][arch]["bin"]));
-    }
-
-    return Ok(out_vec);
 }
 
 /// gets all added paths that the manifest json SPECIFICALLY requested to be added to the PATH
-pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<Path>, ParseJsonError> {
-    let mut out_vec: Vec<Path> = vec![];
+pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<String>, ParseJsonError> {
+    let mut out_vec: Vec<String> = vec![];
 
     if !json_body["env_add_path"].is_null() {
-        out_vec.extend(Path::bin_to_paths(&json_body["env_add_path"]));
+        out_vec.extend(
+            json_body["env_add_path"]            
+            .as_array()
+            .expect(&format!("env_add_path in {json_body} is not formated corectly!\n"))
+            .iter()
+            .map(|val| {
+                println!("one value: {val}");
+                val.as_str().expect(&format!("Expected env_add_path value to be string, instead found: {val}, in manifest {json_body}")).to_string()})
+            .collect::<Vec<String>>()
+            );
     }
 
     let arch = match std::env::consts::ARCH {
@@ -44,21 +30,20 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<Path>, 
         _ => return Err(ParseJsonError::InvalidArch),
     };
     if !json_body["architecture"][arch]["env_add_path"].is_null() {
-        out_vec.extend(Path::bin_to_paths(
-            &json_body["architecture"][arch]["env_add_path"],
-        ));
+        out_vec.extend(
+            json_body["architecture"][arch]["env_add_path"]
+                .as_array()
+                .expect(&format!("env_add_path in {json_body} is not formated corectly!\n"))
+                .iter()
+                .map(|val| {
+                    println!("one value: {val}");
+                    val.as_str().expect(&format!("Expected env_add_path value to be string, instead found: {val}, in manifest {json_body}")).to_string()
+                })
+                .collect::<Vec<String>>()
+        );
     }
 
     return Ok(out_vec);
-}
-
-/// get the version of a json manifes
-pub fn get_version(json_body: &serde_json::Value) -> Result<String, ParseJsonError> {
-    if let Some(version) = json_body["version"].as_str() {
-        Ok(version.to_string())
-    } else {
-        return Err(ParseJsonError::NoVersion);
-    }
 }
 
 pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<EnvVar>, ParseJsonError> {

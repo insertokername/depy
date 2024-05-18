@@ -88,7 +88,7 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
             paths += &[
                 &dir::get_version_location(&man.name, &man.version),
                 "\\",
-                &path.path,
+                &path,
                 ";",
             ]
             .concat();
