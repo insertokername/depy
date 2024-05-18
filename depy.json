@@ -1,0 +1,14 @@
+[
+    {
+        "name": "python",
+        "version": "3.11.0",
+        "bucket_url": "main",
+        "bucket_name": "main"
+    },
+    {
+        "name": "firefox",
+        "version": "latest",
+        "bucket_url": "extras",
+        "bucket_name": "extras"
+    }
+]

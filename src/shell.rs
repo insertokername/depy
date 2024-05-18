@@ -41,13 +41,16 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// enters a dev shell with all environment variables set
-pub fn clean_install(app_name: &str, app_version: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install_cleanly(app_name: &str, app_version: &str) -> Result<(), Box<dyn std::error::Error>> {
     run_cmd_in_depy_dir(
         &[
             "scoop config use_isolated_path DEPY_TEMP_VAL & ",
-            "scoop bucket add main & ",
-            "scoop bucket add extras & ",
-            &format!("scoop install {app_name}@{app_version} & "),
+            &if app_version == "latest" {
+                format!("scoop install {} & ", app_name)
+            } else {
+                format!("scoop install {}@{} & ", app_name, app_version)
+            },
+            // &format!("scoop install {app_name}@{app_version} & "),
             "set DEPY_TEMP_VAL= & ",
             "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
             "scoop config rm use_isolated_path",
@@ -96,7 +99,11 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
         run_cmd_in_depy_dir(
             &[
                 "scoop config use_isolated_path DEPY_TEMP_VAL & ",
-                &format!("scoop reset {}@{} & ", &man.name, &man.version),
+                &if man.version == "latest" {
+                    format!("scoop reset {} & ", &man.name)
+                } else {
+                    format!("scoop reset {}@{} & ", &man.name, &man.version)
+                },
                 "set DEPY_TEMP_VAL= & ",
                 "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
                 "scoop config rm use_isolated_path",
@@ -119,6 +126,8 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
         }
     }
 
+    std::fs::create_dir(depyvenv).expect("Couldn't create .depyvenv!\nChange write permisions!\n");
+
     // move every content of the shim folder to .localshims
     // add .localshims to temp_path
     let mut options = fs_extra::dir::CopyOptions::new();
@@ -137,10 +146,6 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     ]
     .concat();
 
-
-
-    std::fs::create_dir(depyvenv).expect("Couldn't create .depyvenv!\nChange write permisions!\n");
-
     let empty_devshell_loc = std::path::Path::new("./.depyvenv/activate");
     let bat_devshell_loc = std::path::Path::new("./.depyvenv/activate.bat");
     let ps_devshell_loc = std::path::Path::new("./.depyvenv/activate.ps1");
@@ -158,5 +163,15 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
         "Couldn't write devshell!\nChange write permissions!\n"
     ));
 
+    Ok(())
+}
+
+pub fn clean_buckets()->Result<(), Box<dyn std::error::Error>> {
+    run_cmd_in_depy_dir("scoop bucket rm *")?;
+    Ok(())
+}
+
+pub fn add_bucket(bucket_url: &str, bucket_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    run_cmd_in_depy_dir(&format!("scoop bucket add {bucket_name} {bucket_url}"))?;
     Ok(())
 }

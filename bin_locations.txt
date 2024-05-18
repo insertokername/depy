@@ -1,13 +1,13 @@
 TODO:
-  check sccesfull install
+  check sccesfull install and 'python' (3.11.0) is already installed. (if allready installed)
   test on 32 bit machines and MAYBE aarch
-  given a bucket github url download a manifest from it
-  ADD SPECIAL SHIM STRUCT INSTEAD OF USING PATH FOR BOTH
   implement special emergency cleanup mode to reset paths
   maybe change the path adding to use the path made by scoop with use_isolated_path and just append that to the path (not necessary as of now)
   delete failed .depyenv in error
   if cancel while running program don't screw up stdout
   make operations faster by packing them into a single env set thingy
+  BETTER ERRO HANDLING PLEASE
+  option flags
 
 general install proccess routine:
   DONE change scoop install dir to depy/scoop - just change env var
@@ -19,13 +19,13 @@ general install proccess routine:
   DONE rm every shim in alter install folder - just rm *
 
   go to all dep manifests reinstate shims in a local folder - req depy/scoop location
-  update all paths - just change env var
-  update special path to depy/scoop/shims - just change env var
+  DONE update all paths - just change env var
+  DONE update special path to depy/scoop/shims - just change env var
 
-  after this if the shell exits it is guaranteed that there is no way any leftover paths exist.
+  DONE after this if the shell exits it is guaranteed that there is no way any leftover paths exist.
 
 
-also need to implement args somehow :P
+DONE also need to implement args somehow :P
 
 DONE TODO:
 DONE   add all env_variables to env
@@ -39,32 +39,3 @@ DONE
 DONE architecture specific bin dict "architecture"
 DONE 
 DONE lib type pkgs that don't have a bin or path folder
-
-acmesharp.json
-azure-ps.json
-boost.json
-cacert.json
-clink-completions.json
-clink-flex-prompt.json
-git-up.json
-glfw.json
-importexcel.json
-jdtls.json
-modern7z.json
-nunit-extension-nunit-project-loader.json
-nunit-extension-nunit-v2-driver.json
-nunit-extension-nunit-v2-result-writer.json
-nunit-extension-teamcity-event-listener.json
-nunit-extension-vs-project-loader.json
-oracle-instant-client-odbc.json
-oracle-instant-client-sdk.json
-oracle-instant-client-sqlplus.json
-pester.json
-powershell-yaml.json
-psgithub.json
-rtools.json
-scoop-shim.json
-terraform-provider-ibm.json
-tesseract-languages.json
-xpdf-tools-lsp.json
-z.lua.json
