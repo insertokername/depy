@@ -6,7 +6,15 @@ Depy automatically manages creates virtual environemnt similar to `python -m ven
 
 ## Instalation
 
-After you install scoop you just need to run:
+Open up powershell by searching "powershell" in you windows search bar.
+
+If you already have scoop installed skip these three commands, if you don't just copy paste these and type "y" if powershell asks you for any sort of confirmation:
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+```
+
+After scoop is installed you just need to run:
 ```
 scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
 ```

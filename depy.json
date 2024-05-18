@@ -1,0 +1,8 @@
+[
+    {
+        "name":"python",
+        "version":"3.10.0",
+        "bucket_url":"main",
+        "bucket_name":"main"
+    }
+]
