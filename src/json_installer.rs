@@ -3,9 +3,6 @@
 //     #[error("Error: Invalid system arch!")]
 
 // }
-
-use std::fmt::Debug;
-
 use crate::{
     dir::cleanup_shims,
     manifest::Manifest,

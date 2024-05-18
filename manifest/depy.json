@@ -1,0 +1,45 @@
+{
+    "version": "0.1",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/insertokername/depy/releases/download/v0.1/depy-64bit.exe",
+            "bin": [
+                [
+                    "depy-64bit.exe",
+                    "depy"
+                ]
+            ]
+        },
+        "32bit": {
+            "url": "https://github.com/insertokername/depy/releases/download/v0.1/depy-32bit.exe",
+            "bin": [
+                [
+                    "depy-32bit.exe",
+                    "depy"
+                ]
+            ]
+        }
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/insertokername/depy/releases/download/v$version/depy-64bit.exe",
+                "bin": [
+                    [
+                        "depy-64bit.exe",
+                        "depy"
+                    ]
+                ]
+            },
+            "32bit": {
+                "url": "https://github.com/insertokername/depy/releases/download/v$version/depy-32bit.exe",
+                "bin": [
+                    [
+                        "depy-32bit.exe",
+                        "depy"
+                    ]
+                ]
+            }
+        }
+    }
+}

@@ -4,6 +4,13 @@ Depy is a dependency manager based on scoop. It automatically installs any progr
 
 Depy automatically manages creates virtual environemnt similar to `python -m venv` that helps you manage app versions of apps cleanly.
 
+## Instalation
+
+After you install scoop you just need to run:
+```
+scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
+```
+
 ## Compilation
 
 **Compilation dependencies:**
