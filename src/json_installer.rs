@@ -61,7 +61,7 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
         let response = match ureq::get(&app_url).call() {
             Ok(out) => out,
             Err(err) => {
-                log::error!("\n\nCould not get app {} from url:{app_url}, check the following:\n1. You are connected to the internet\n2. The package is correctly spelled / it exists\n3. If you are using a custom bucket check that there is a bucket dir and its on the master branch\n\n",package.name);
+                log::error!("\n\nCould not get app '{}' from url:{app_url}, check the following:\n1. You are connected to the internet\n2. The package is correctly spelled / it exists\n3. If you are using a custom bucket check that there is a bucket dir and its on the master branch\n\n",package.name);
                 log::debug!("Recieved error from github was:{err}");
                 return Err(Box::new(InstallerError::ResponseError));
             }
