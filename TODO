@@ -1,0 +1,6 @@
+TODO:
+  test on 32 bit machines and MAYBE aarch
+  implement special emergency cleanup mode to reset paths
+  make operations faster by packing them into a single env set thingy
+  option to skip init
+  option to debug
