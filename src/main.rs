@@ -1,5 +1,10 @@
 // #![allow(dead_code)]
+#[macro_use]
+extern crate lazy_static;
 
+use clap::Parser;
+
+mod args;
 mod dir;
 mod env_var;
 mod json_installer;
@@ -8,9 +13,17 @@ mod package;
 mod parse_json_manifest;
 mod shell;
 
+lazy_static! {
+    pub static ref ARGS: args::Args = args::Args::parse();
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::new()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(if ARGS.verbose {
+            log::LevelFilter::Debug
+        } else {
+            log::LevelFilter::Info
+        })
         .format_target(false)
         .format_timestamp(None)
         .init();
@@ -31,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    if let Err(err) = json_installer::install(json_value){
+    if let Err(err) = json_installer::install(json_value) {
         log::error!("Error occured while installing from depy file!");
         return Err(err);
     }

@@ -101,3 +101,8 @@ First you should read a bit about scoop buckets from [here](https://github.com/S
 - only rust 😁
 
 First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the project in your preferred code editor and run `cargo build`. The project will be compiled under target/Debug/depy.exe
+
+
+## No initialization option
+
+This is an option flag that doesn't update any buckets before running the installer. This is way faster and recomended to be used if you are planning on rebuilding with depy a bunch of times and you are not chaning anything about your buckets. **ANY TIME YOU CHANGE ANYTHING ABOUT A BUCKET YOU MUST RUN DEPY AT LEAST ONCE WITHOUT THIS SETTING**

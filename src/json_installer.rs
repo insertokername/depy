@@ -37,8 +37,10 @@ fn resolve_bucket(bucket_name: &str) -> String {
 
 /// Installs all programs specified in a json file
 pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
-    clean_buckets()?;
-    init_depy()?;
+    if !crate::ARGS.no_init{
+        clean_buckets()?;
+        init_depy()?;
+    }
     let mut manifest_vec: Vec<Manifest> = vec![];
     let packages = if let Some(out) = install_json.as_array() {
         out
