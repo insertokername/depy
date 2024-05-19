@@ -11,8 +11,6 @@ pub enum ShellError {
     UpdateError,
     #[error("Error: Couldn't install an application!")]
     InstallError,
-    #[error("Error: Couldn't clean buckets!")]
-    CleanBucketError,
     #[error("Error: Couldn't add a bucket!")]
     AddBucketError,
     #[error("Error: Couldn't create a file or folder!")]
@@ -37,7 +35,7 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Initializing depy...");
     dir::init_depy_dir();
 
-    let cmd_output = match run_cmd_in_depy_dir("scoop update") {
+    let cmd_output = match run_cmd_in_depy_dir("scoop bucket rm main & scoop bucket add main & scoop update") {
         Ok(cmd_output) => cmd_output,
         Err(err) => {
             log::error!(
@@ -225,14 +223,7 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     Ok(())
 }
 
-pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
-    if let Err(err) = run_cmd_in_depy_dir("scoop bucket rm *") {
-        log::error!("Couldn't clean buckets!\nError:{err}");
-        return Err(Box::new(ShellError::CleanBucketError));
-    };
-    Ok(())
-}
-
+/// Adds a bucket to the depy/scoop instalation
 pub fn add_bucket(bucket_url: &str, bucket_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Adding bucket: {bucket_name}");
     let cmd_output = match run_cmd_in_depy_dir(&format!(

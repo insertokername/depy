@@ -1,14 +1,21 @@
 use std::process::exit;
 
+fn get_user_profile() -> String {
+    if let Ok(out) = std::env::var("USERPROFILE") {
+        out
+    } else {
+        log::error!("%USERPROFILE% environment variable not found");
+        std::process::exit(1);
+    }
+}
+
 pub fn get_depy_dir_location() -> String {
-    let user_profile =
-        std::env::var("USERPROFILE").expect("%USERPROFILE% environment variable not found");
+    let user_profile = get_user_profile();
     format!("{}\\depy\\scoop", user_profile)
 }
 
 pub fn get_scoop_dir_location() -> String {
-    let user_profile =
-        std::env::var("USERPROFILE").expect("%USERPROFILE% environment variable not found");
+    let user_profile = get_user_profile();
     format!("{}\\scoop", user_profile)
 }
 
@@ -38,7 +45,7 @@ pub fn expand_vars(value: &str, name: &str, version: &str) -> String {
                 "x86" => "32bit",
                 "x86_64" => "64bit",
                 _ => {
-                    println!("Invalid system arch!");
+                    log::error!("Invalid system arch!");
                     exit(1)
                 }
             },
@@ -50,22 +57,28 @@ pub fn init_depy_dir() {
     let str_bucketpath = [&str_path, "\\buckets"].concat();
     let bucketpath = std::path::Path::new(&str_bucketpath);
     if !bucketpath.exists() {
-        std::fs::create_dir_all(&bucketpath)
-            .expect("Failed to create depy/scoop/buckets dir! Check read/write privileges!");
+        if let Err(err) = std::fs::create_dir_all(&bucketpath) {
+            log::error!("Failed to create depy/scoop/buckets dir!\n Got error:{err}");
+            std::process::exit(1);
+        }
     }
 
     let str_shimpath = [&str_path, "\\shims"].concat();
     let shimpath = std::path::Path::new(&str_shimpath);
     if !shimpath.exists() {
-        std::fs::create_dir_all(&shimpath)
-            .expect("Failed to create depy/scoop/shims dir! Check read/write privileges!");
+        if let Err(err) = std::fs::create_dir_all(&shimpath) {
+            log::error!("Failed to create depy/scoop/shims dir!\n Got error:{err}");
+            std::process::exit(1);
+        }
     }
 
     let str_apppath = [&str_path, "\\apps"].concat();
     let apppath = std::path::Path::new(&str_apppath);
     if !apppath.exists() {
-        std::fs::create_dir_all(&apppath)
-            .expect("Failed to create depy/scoop/shims dir! Check read/write privileges!");
+        if let Err(err) = std::fs::create_dir_all(&apppath) {
+            log::error!("Failed to create depy/scoop/shims dir!\n Got error:{err}");
+            std::process::exit(1);
+        }
     }
 
     let str_scooplocation = get_scoop_dir_location() + "\\apps\\scoop";
@@ -73,8 +86,12 @@ pub fn init_depy_dir() {
     let scooplocation = std::path::Path::new(&str_scooplocation);
     let depy_scooplocation = std::path::Path::new(&str_depy_scooplocation);
     if !depy_scooplocation.exists() {
-        copy_dir::copy_dir(&scooplocation, &depy_scooplocation)
-            .expect("Couldn't copy scoop instalation folder to %userprofile%/depy/scoop! Check write privileges!");
+        if let Err(err) = copy_dir::copy_dir(&scooplocation, &depy_scooplocation) {
+            log::error!(
+                "Couldn't copy scoop instalation folder to %userprofile%/depy\n Got error:{err}"
+            );
+            std::process::exit(1);
+        }
     }
 }
 
