@@ -1,6 +1,4 @@
 TODO:
-  test on 32 bit machines and MAYBE aarch
   implement special emergency cleanup mode to reset paths
+  implement uninstaller
   make operations faster by packing them into a single env set thingy
-  option to skip init
-  option to debug
