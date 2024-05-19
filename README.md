@@ -8,7 +8,7 @@ Depy automatically manages creates virtual environemnt similar to `python -m ven
 
 Open up powershell by searching "powershell" in you windows search bar.
 
-If you already have scoop installed skip this first command, if you don't just copy paste these and type "y" and hit enter "until" if powershell asks you for any sort of confirmation:
+If you already have scoop installed skip this first command, if you don't just copy paste these and hit enter until all commands are run. If powershell asks you for any sort of confirmation type y:
 ```
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
