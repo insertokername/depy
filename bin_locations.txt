@@ -8,7 +8,9 @@ TODO:
   make operations faster by packing them into a single env set thingy
   BETTER ERRO HANDLING PLEASE
   option flags
-
+  option to skip init
+  option to debug
+  
 general install proccess routine:
   DONE change scoop install dir to depy/scoop - just change env var
   DONE rm every shim in alter install folder - just rm *
