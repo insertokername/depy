@@ -25,6 +25,10 @@ After git is installed you just need to run:
 scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
 ```
 
+If you get an error about not finding `VCRUNTIME140.dll` you need to install the visual studio redistributable from [here](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) 
+
+You are done! Just reopen powershell and you can now use the depy command!
+
 ## Usage
 
 First we need to create a `depy.json` file that will declare all of our desired programs.
