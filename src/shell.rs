@@ -7,10 +7,14 @@ use crate::{
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ShellError {
+    #[error("Error: Couldn't execute a command!")]
+    ExecutionError,
     #[error("Error: Couldn't update the scoop instalation inside depy!")]
     UpdateError,
     #[error("Error: Couldn't install an application!")]
     InstallError,
+    #[error("Error: Couldn't clean buckets!")]
+    CleanBucketError,
     #[error("Error: Couldn't add a bucket!")]
     AddBucketError,
     #[error("Error: Couldn't create a file or folder!")]
@@ -23,11 +27,20 @@ pub enum ShellError {
 
 /// runs generic command inside the depy folder
 fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let output = duct::cmd!("cmd", "/C", cmd)
+    let output = std::process::Command::new("cmd")
+        .arg("/C")
+        .arg(cmd)
         .env("SCOOP", dir::get_depy_dir_location())
-        .stderr_to_stdout()
-        .read()?;
-    Ok(output)
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::error!("Command failed with error: {stderr}");
+        return Err(Box::new(ShellError::ExecutionError));
+    }
+
+    let stdout = String::from_utf8(output.stdout)?;
+    Ok(stdout)
 }
 
 /// updates scoop and creates depy directory if doesn't allready exist
@@ -220,6 +233,14 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     };
 
     log::info!("Successfully created venv dir!");
+    Ok(())
+}
+
+pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
+    if let Err(err) = run_cmd_in_depy_dir("scoop bucket rm *") {
+        log::error!("Couldn't clean buckets!\nError:{err}");
+        return Err(Box::new(ShellError::CleanBucketError));
+    };
     Ok(())
 }
 
