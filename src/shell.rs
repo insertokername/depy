@@ -48,15 +48,16 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Initializing depy...");
     dir::init_depy_dir();
 
-    let cmd_output = match run_cmd_in_depy_dir("scoop bucket rm main & scoop bucket add main & scoop update") {
-        Ok(cmd_output) => cmd_output,
-        Err(err) => {
-            log::error!(
+    let cmd_output =
+        match run_cmd_in_depy_dir("scoop bucket rm main & scoop bucket add main & scoop update") {
+            Ok(cmd_output) => cmd_output,
+            Err(err) => {
+                log::error!(
                 "Failed to run update command! Please make sure scoop is installed on your system!"
             );
-            return Err(err);
-        }
-    };
+                return Err(err);
+            }
+        };
 
     if !cmd_output.contains("Scoop was updated successfully!") {
         log::error!("Couldn't update scoop! Command output: {cmd_output}");
@@ -93,7 +94,11 @@ pub fn install_cleanly(
         }
     };
 
-    if cmd_output.contains(&format!("Could not install {app_name}")) {
+    if !cmd_output.lines().any(|line| {
+        line.contains(&format!("{app_name}"))
+            && (line.contains("was installed successfully!")
+                || line.contains("is already installed"))
+    }) {
         log::error!("Scoop errored out on:\n{cmd_output}");
         log::error!("\n\nFailed to install {app_name}, scoop error above ^^^^^^^^^^^^^^^^\n\n");
         return Err(Box::new(ShellError::InstallError));
