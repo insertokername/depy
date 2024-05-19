@@ -45,7 +45,7 @@ pub fn expand_vars(value: &str, name: &str, version: &str) -> String {
         )
 }
 
-pub fn init_depy_dir() -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_depy_dir() {
     let str_path = get_depy_dir_location();
     let str_bucketpath = [&str_path, "\\buckets"].concat();
     let bucketpath = std::path::Path::new(&str_bucketpath);
@@ -73,10 +73,9 @@ pub fn init_depy_dir() -> Result<(), Box<dyn std::error::Error>> {
     let scooplocation = std::path::Path::new(&str_scooplocation);
     let depy_scooplocation = std::path::Path::new(&str_depy_scooplocation);
     if !depy_scooplocation.exists() {
-        copy_dir::copy_dir(&scooplocation, &depy_scooplocation)?;
+        copy_dir::copy_dir(&scooplocation, &depy_scooplocation)
+            .expect("Couldn't copy scoop instalation folder to %userprofile%/depy/scoop! Check write privileges!");
     }
-
-    Ok(())
 }
 
 pub fn cleanup_shims() -> Result<(), Box<dyn std::error::Error>> {

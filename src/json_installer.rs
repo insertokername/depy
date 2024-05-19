@@ -86,7 +86,6 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
         .expect("Got an invalid manifest!");
         manifest_vec.push(parsed_manifest);
 
-        println!("Adding bucket {package_bucket}");
         add_bucket(common_bucket_names(package_bucket), package_bucket_name)?;
     }
 

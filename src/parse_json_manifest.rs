@@ -16,9 +16,7 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<String>
             .as_array()
             .expect(&format!("env_add_path in {json_body} is not formated corectly!\n"))
             .iter()
-            .map(|val| {
-                println!("one value: {val}");
-                val.as_str().expect(&format!("Expected env_add_path value to be string, instead found: {val}, in manifest {json_body}")).to_string()})
+            .map(|val| val.as_str().expect(&format!("Expected env_add_path value to be string, instead found: {val}, in manifest {json_body}")).to_string())
             .collect::<Vec<String>>()
             );
     }
@@ -35,10 +33,7 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<String>
                 .as_array()
                 .expect(&format!("env_add_path in {json_body} is not formated corectly!\n"))
                 .iter()
-                .map(|val| {
-                    println!("one value: {val}");
-                    val.as_str().expect(&format!("Expected env_add_path value to be string, instead found: {val}, in manifest {json_body}")).to_string()
-                })
+                .map(|val| val.as_str().expect(&format!("Expected env_add_path value to be string, instead found: {val}, in manifest {json_body}")).to_string())
                 .collect::<Vec<String>>()
         );
     }

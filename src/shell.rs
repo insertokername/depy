@@ -5,43 +5,63 @@ use crate::{
     manifest,
 };
 
-use std::io::{BufRead, Write};
+#[derive(thiserror::Error, Debug, PartialEq)]
+pub enum ShellError {
+    #[error("Error: Couldn't update the scoop instalation inside depy!")]
+    UpdateError,
+    #[error("Error: Couldn't install an application!")]
+    InstallError,
+    #[error("Error: Couldn't clean buckets!")]
+    CleanBucketError,
+    #[error("Error: Couldn't add a bucket!")]
+    AddBucketError,
+    #[error("Error: Couldn't create a file or folder!")]
+    CreateError,
+    #[error("Error: Couldn't delete a file or folder!")]
+    DeleteError,
+    #[error("Error: Couldn't write to a file!")]
+    WriteError,
+}
 
-fn run_cmd_in_depy_dir(cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let handle = duct::cmd!("cmd", "/C", cmd)
+/// runs generic command inside the depy folder
+fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let output = duct::cmd!("cmd", "/C", cmd)
         .env("SCOOP", dir::get_depy_dir_location())
         .stderr_to_stdout()
-        .reader()?;
+        .read()?;
+    Ok(output)
+}
 
-    let stdout = std::io::stdout();
-    let mut stdout_lock = stdout.lock();
+/// updates scoop and creates depy directory if doesn't allready exist
+pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Initializing depy...");
+    dir::init_depy_dir();
 
-    let reader = std::io::BufReader::new(handle);
-
-    for line in reader.lines() {
-        match line {
-            Ok(line) => {
-                writeln!(stdout_lock, "{}", line).unwrap();
-            }
-            Err(e) => {
-                eprintln!("Error reading line: {}", e);
-            }
+    let cmd_output = match run_cmd_in_depy_dir("scoop update") {
+        Ok(cmd_output) => cmd_output,
+        Err(err) => {
+            log::error!(
+                "Failed to run update command! Please make sure scoop is installed on your system!"
+            );
+            return Err(err);
         }
+    };
+
+    if !cmd_output.contains("Scoop was updated successfully!") {
+        log::error!("Couldn't update scoop! Command output: {cmd_output}");
+        return Err(Box::new(ShellError::UpdateError));
     }
 
     Ok(())
 }
 
-/// updates scoop and creates depy directory if doesn't allready exist
-pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
-    dir::init_depy_dir()?; // makes the %userprofile%/depy/scoop dirs if they dont allready exist
-    run_cmd_in_depy_dir("scoop update")?;
-    Ok(())
-}
-
-/// enters a dev shell with all environment variables set
-pub fn install_cleanly(app_name: &str, app_version: &str) -> Result<(), Box<dyn std::error::Error>> {
-    run_cmd_in_depy_dir(
+/// installs a program in the depy dir without adding it to path
+pub fn install_cleanly(
+    app_name: &str,
+    app_version: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Installing {app_name}@{app_version}\nPlease do not terminate process as to not risk PATH damages...");
+    let cmd_output = match run_cmd_in_depy_dir(
         &[
             "scoop config use_isolated_path DEPY_TEMP_VAL & ",
             &if app_version == "latest" {
@@ -49,28 +69,50 @@ pub fn install_cleanly(app_name: &str, app_version: &str) -> Result<(), Box<dyn 
             } else {
                 format!("scoop install {}@{} & ", app_name, app_version)
             },
-            // &format!("scoop install {app_name}@{app_version} & "),
             "set DEPY_TEMP_VAL= & ",
             "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
             "scoop config rm use_isolated_path",
         ]
         .concat(),
-    )?;
+    ) {
+        Ok(out) => out,
+        Err(err) => {
+            log::error!("Failed to install {app_name}, error:{err}");
+            return Err(err);
+        }
+    };
+
+    if cmd_output.contains(&format!("Could not install {app_name}")) {
+        log::error!("Scoop errored out on:\n{cmd_output}");
+        log::error!("\n\nFailed to install {app_name}, scoop error above ^^^^^^^^^^^^^^^^\n\n");
+        return Err(Box::new(ShellError::InstallError));
+    }
+
+    log::info!("{app_name} installed successfully!\n");
+    log::debug!("Command output:\n{cmd_output}");
     Ok(())
 }
 
+/// Creates .depyenv folder in curent folder, containing activation scripts to temporarily add programs to the path
+///
+/// # IMPORTANT:
+/// **This function assumes that packages are allready installed in your depy installation (%userprofile%/depy/scoop) please make sure to `install_cleanly` the app before running this**
 pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn std::error::Error>> {
     let depyvenv = std::path::Path::new("./.depyvenv");
 
     if depyvenv.exists() {
         if depyvenv.is_file() {
-            std::fs::remove_file(depyvenv)
-                .expect("Couldn't remove .depyvenv!\nChange write permisions!\n");
+            if let Err(err) = std::fs::remove_file(depyvenv) {
+                log::error!("Couldn't remove .depyvenv!\n Got error {err}");
+                return Err(Box::new(ShellError::DeleteError));
+            };
         } else {
-            std::fs::remove_dir_all(depyvenv)
-                .expect("Couldn't remove .depyvenv!\nChange write permisions!\n");
+            if let Err(err) = std::fs::remove_dir_all(depyvenv) {
+                log::error!("Couldn't remove .depyvenv!\n Got error {err}");
+                return Err(Box::new(ShellError::DeleteError));
+            };
         }
-    }
+    };
 
     let mut ps_env_vars = r###"function global:prompt { return "(CURENTLY IN DEV SHELL) " + (Get-Location) + "> " } $function:prompt = $function:prompt"###.to_string();
     ps_env_vars += "\n";
@@ -79,10 +121,6 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     let mut paths = "".to_string();
 
     for man in manifests {
-        // first add all paths to the PATH
-        // trb sa merem prin manifest la fiecare path si sa merem in insatll folder (depy/scoop/apps/name/version)
-        // adaugam al o variabila numita temp_path
-        // cand instantiem shell-ul prefixuim PATH-ul cu temp_path
         for path in man.added_paths {
             paths += &[
                 &dir::get_version_location(&man.name, &man.version),
@@ -93,9 +131,9 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
             .concat();
         }
 
-        // add all shims to .localshims
         // add all required shims from the bin attr
-        run_cmd_in_depy_dir(
+        log::info!("Adding shims for {}", &man.name);
+        let cmd_out = match run_cmd_in_depy_dir(
             &[
                 "scoop config use_isolated_path DEPY_TEMP_VAL & ",
                 &if man.version == "latest" {
@@ -108,7 +146,14 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
                 "scoop config rm use_isolated_path",
             ]
             .concat(),
-        )?;
+        ) {
+            Ok(out) => out,
+            Err(err) => {
+                log::error!("Failed to make shims for {}, error:{err}", &man.name);
+                return Err(err);
+            }
+        };
+        log::debug!("Shim making output for {}:\n {cmd_out}", &man.name);
 
         // set all envs
         for var in man.env_vars {
@@ -125,10 +170,15 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
         }
     }
 
-    std::fs::create_dir(depyvenv).expect("Couldn't create .depyvenv!\nChange write permisions!\n");
+    if let Err(err) = std::fs::create_dir(depyvenv) {
+        log::error!("Couldn't create .depyvenv!\nGot error: {err}");
+        return Err(Box::new(ShellError::CreateError));
+    };
 
     // move every content of the shim folder to .localshims
     // add .localshims to temp_path
+    log::info!("Creating venv dir...");
+
     let mut options = fs_extra::dir::CopyOptions::new();
     options.overwrite = true;
     options.copy_inside = true;
@@ -136,7 +186,10 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     let source_shims = [&dir::get_depy_dir_location(), "\\shims"].concat();
     let local_shims = "./.depyvenv/localshims";
 
-    fs_extra::dir::copy(source_shims, local_shims, &options).expect("couldn't copy shims folder\n");
+    if let Err(err) = fs_extra::dir::copy(source_shims, local_shims, &options) {
+        log::error!("Failed to copy shims to {local_shims}\nGot error: {err}");
+        return Err(Box::new(err));
+    };
 
     let path_local_shims = std::path::Path::new(local_shims);
     paths += &[
@@ -152,25 +205,51 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     bat_env_vars += &["set PATH=", &paths, "%PATH%\n"].concat();
     ps_env_vars += &["$env:PATH = \"", &paths, "\" + $env:PATH\n"].concat();
 
-    std::fs::write(empty_devshell_loc, "").expect(&format!(
-        "Couldn't write devshell!\nChange write permissions!\n"
-    ));
-    std::fs::write(ps_devshell_loc, &ps_env_vars).expect(&format!(
-        "Couldn't write devshell!\nChange write permissions!\n"
-    ));
-    std::fs::write(bat_devshell_loc, &bat_env_vars).expect(&format!(
-        "Couldn't write devshell!\nChange write permissions!\n"
-    ));
+    if let Err(err) = std::fs::write(empty_devshell_loc, "") {
+        log::error!("Couldn't write devshell!\nGot error:{err}");
+        std::fs::remove_dir_all(&depyvenv)?; //we should have read/write privileges of that folder since we created it a few seconds ago
+        return Err(Box::new(ShellError::WriteError));
+    };
+    if let Err(err) = std::fs::write(ps_devshell_loc, &ps_env_vars) {
+        log::error!("Couldn't write devshell!\nGot error:{err}");
+        std::fs::remove_dir_all(&depyvenv)?;
+        return Err(Box::new(ShellError::WriteError));
+    };
+    if let Err(err) = std::fs::write(bat_devshell_loc, &bat_env_vars) {
+        log::error!("Couldn't write devshell!\nGot error:{err}");
+        std::fs::remove_dir_all(&depyvenv)?;
+        return Err(Box::new(ShellError::WriteError));
+    };
 
+    log::info!("Successfully created venv dir!");
     Ok(())
 }
 
-pub fn clean_buckets()->Result<(), Box<dyn std::error::Error>> {
-    run_cmd_in_depy_dir("scoop bucket rm *")?;
+pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
+    if let Err(err) = run_cmd_in_depy_dir("scoop bucket rm *") {
+        log::error!("Couldn't clean buckets!\nError:{err}");
+        return Err(Box::new(ShellError::CleanBucketError));
+    };
     Ok(())
 }
 
 pub fn add_bucket(bucket_url: &str, bucket_name: &str) -> Result<(), Box<dyn std::error::Error>> {
-    run_cmd_in_depy_dir(&format!("scoop bucket add {bucket_name} {bucket_url}"))?;
+    log::info!("Adding bucket: {bucket_name}");
+    let cmd_output = match run_cmd_in_depy_dir(&format!(
+        "scoop bucket add {bucket_name} {bucket_url}"
+    )) {
+        Ok(out) => out,
+        Err(err) => {
+            log::error!("Failed to add bucket name: {bucket_name} bucket url: {bucket_url}.\nGot error{err}");
+            return Err(Box::new(ShellError::AddBucketError));
+        }
+    };
+
+    if !cmd_output.contains(&format!("The {bucket_name} bucket was added successfully"))
+        && !cmd_output.contains(&format!("The '{bucket_name}' bucket already exists"))
+    {
+        log::error!("Failed to add bucket name: {bucket_name} bucket url: {bucket_url},\nScoop output was:\n{cmd_output}");
+        return Err(Box::new(ShellError::AddBucketError));
+    };
     Ok(())
 }
