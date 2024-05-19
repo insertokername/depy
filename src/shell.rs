@@ -8,7 +8,6 @@ use crate::{
 use std::io::{BufRead, Write};
 
 fn run_cmd_in_depy_dir(cmd: &str) -> Result<(), Box<dyn std::error::Error>> {
-    dir::init_depy_dir()?; // makes the %userprofile%/depy/scoop dirs if not allready existing
     let handle = duct::cmd!("cmd", "/C", cmd)
         .env("SCOOP", dir::get_depy_dir_location())
         .stderr_to_stdout()

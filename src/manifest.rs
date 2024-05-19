@@ -29,7 +29,8 @@ impl Manifest {
         manifest: &str,
         name: String,
         version: String,
-    ) -> Result<Manifest, Box<dyn std::error::Error>> {
+    ) -> Result<Manifest,
+     Box<dyn std::error::Error>> {
         let parsed_json: serde_json::Value = serde_json::from_str(manifest)?;
         Ok(Manifest::new(&parsed_json, name, version)?)
     }
