@@ -1,8 +1,8 @@
 {
-    "version": "0.1",
+    "version": "1.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/insertokername/depy/releases/download/v0.1/depy-64bit.exe",
+            "url": "https://github.com/insertokername/depy/releases/download/v1.0/depy-64bit.exe",
             "bin": [
                 [
                     "depy-64bit.exe",
@@ -11,7 +11,7 @@
             ]
         },
         "32bit": {
-            "url": "https://github.com/insertokername/depy/releases/download/v0.1/depy-32bit.exe",
+            "url": "https://github.com/insertokername/depy/releases/download/v1.0/depy-32bit.exe",
             "bin": [
                 [
                     "depy-32bit.exe",
