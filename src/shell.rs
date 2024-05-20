@@ -23,6 +23,8 @@ pub enum ShellError {
     DeleteError,
     #[error("Error: Couldn't write to a file!")]
     WriteError,
+    #[error("Error: Couldn't uninstall a package!")]
+    PackageUninstallError,
 }
 
 /// runs generic command inside the depy folder
@@ -45,7 +47,7 @@ fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Error>> 
 
 /// updates scoop and creates depy directory if doesn't allready exist
 pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Initializing depy...");
+    log::info!("Initializing depy directory...");
     dir::init_depy_dir();
 
     let cmd_output =
@@ -268,5 +270,94 @@ pub fn add_bucket(bucket_url: &str, bucket_name: &str) -> Result<(), Box<dyn std
         log::error!("Failed to add bucket name: {bucket_name} bucket url: {bucket_url},\nScoop output was:\n{cmd_output}");
         return Err(Box::new(ShellError::AddBucketError));
     };
+    Ok(())
+}
+
+pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Uninstalling depy apps...");
+
+    // get all programs from scoop list
+    // run uninstall for all of them, if one fails just rm -rf it
+
+    let cmd_output = match run_cmd_in_depy_dir(&format!("scoop list")) {
+        Ok(out) => out,
+        Err(err) => {
+            log::error!("List packages.\nGot error{err}");
+            return Err(Box::new(ShellError::AddBucketError));
+        }
+    };
+
+    let mut iter = cmd_output.lines().peekable();
+
+    while let Some(line) = iter.next() {
+        if line.starts_with("Name") {
+            iter.next();
+            break;
+        }
+    }
+
+    let packages: Vec<&str> = iter
+        .filter_map(|line| line.split(' ').next())
+        .filter(|package| !package.is_empty())
+        .collect();
+
+    for package in packages {
+        log::info!("Uninstalling {package}");
+        let cmd_output = match run_cmd_in_depy_dir(
+            &[
+                "scoop config use_isolated_path DEPY_TEMP_VAL & ",
+                &format!("scoop uninstall {package} & "),
+                "set DEPY_TEMP_VAL= & ",
+                "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
+                "scoop config rm use_isolated_path",
+            ]
+            .concat(),
+        ) {
+            Ok(out) => out,
+            Err(err) => {
+                if crate::ARGS.force_uninstall {
+                    run_cmd_in_depy_dir(&format!(
+                        "rmdir /S /Q {}\\apps\\{package}",
+                        dir::get_depy_dir_location()
+                    ))
+                    .expect(&format!(
+                        "\nERROR: Couldn't force remove package: {package}\n"
+                    ));
+                    format!("'{package}' was uninstalled.")
+                } else {
+                    log::error!("Failed to uninstall {package}, error:{err}\nIf you want to try force uninstall set -f flag\n\n");
+                    return Err(err);
+                }
+            }
+        };
+
+        if !cmd_output.contains(&format!("'{package}' was uninstalled"))
+            && !cmd_output.contains(&format!("'{package}' isn't installed."))
+        {
+            if crate::ARGS.force_uninstall {
+                run_cmd_in_depy_dir(&format!(
+                    "rmdir /S /Q {}\\apps\\{package}",
+                    dir::get_depy_dir_location()
+                ))
+                .expect(&format!(
+                    "\nERROR: Couldn't force remove package: {package}\n"
+                ));
+            } else {
+                log::error!("Failed to uninstall {package}, error:{cmd_output}\nIf you want to try force uninstall set -f flag\n\n");
+                return Err(Box::new(ShellError::PackageUninstallError));
+            }
+        }
+    }
+
+    log::info!("Deleting depy directory...");
+    if let Err(err) = std::fs::remove_dir(dir::get_depy_dir_location()) {
+        log::error!("Couldn't delete the depy folder %userprofile%/depy\nError was:\n{err}");
+        return Err(Box::new(err));
+    }
+
+    log::info!(
+        "Deletion successfull! If you want to fully remove depy run:\nscoop uninstall depy\n"
+    );
+
     Ok(())
 }

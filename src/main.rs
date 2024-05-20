@@ -28,6 +28,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_timestamp(None)
         .init();
 
+    if ARGS.dir_cleanup{
+        shell::uninstall_depy()?;
+        return  Ok(());
+    }
+
     let depy_contents = match std::fs::read_to_string("./depy.json") {
         Ok(out) => out,
         Err(err) => {

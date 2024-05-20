@@ -1,4 +1,3 @@
 TODO:
   implement special emergency cleanup mode to reset paths
-  implement uninstaller
-  make operations faster by packing them into a single env set thingy
+  make operations faster by packing them into a single env set
