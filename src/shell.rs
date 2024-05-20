@@ -350,7 +350,7 @@ pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     log::info!("Deleting depy directory...");
-    if let Err(err) = std::fs::remove_dir_all(dir::get_depy_dir_location()) {
+    if let Err(err) = remove_dir_all::remove_dir_all(dir::get_depy_dir_location()) {
         log::error!("Couldn't delete the depy folder %userprofile%/depy\nError was:\n{err}");
         return Err(Box::new(err));
     }
