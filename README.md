@@ -121,3 +121,6 @@ Second:
 scoop uninstall depy
 ```
 This just uninstalls the exe itself which is very small.
+
+## Resources used
+While making this project I mainly had to read the [scoop wiki](https://github.com/ScoopInstaller/Main/tree/) and some random crate documentations like [clap](https://docs.rs/clap/latest/clap/) and [env_logger](https://docs.rs/env_logger/latest/env_logger/)
