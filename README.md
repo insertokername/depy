@@ -95,6 +95,10 @@ The format of a depy.json looks like this:
 
 First you should read a bit about scoop buckets from [here](https://github.com/ScoopInstaller/Scoop/wiki/Buckets). The proceed to use the [bucket template repo](https://github.com/ScoopInstaller/BucketTemplate) and **make sure your bucket directory is on the master branch.** After that you can just put the link to you repository in the `bucket_url` argument of the program that requires it (something like this: `"bucket_url":"https://github.com/ScoopInstaller/Extras"`)
 
+## No initialization option
+
+This is an option flag that doesn't update any buckets before running the installer. This is way faster and recomended to be used if you are planning on rebuilding with depy a bunch of times and you are not chaning anything about your buckets. **ANY TIME YOU CHANGE ANYTHING ABOUT A BUCKET YOU MUST RUN DEPY AT LEAST ONCE WITHOUT THIS SETTING**
+
 ## Compilation
 
 **Compilation dependencies:**
@@ -102,7 +106,18 @@ First you should read a bit about scoop buckets from [here](https://github.com/S
 
 First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the project in your preferred code editor and run `cargo build`. The project will be compiled under target/Debug/depy.exe
 
+## Uninstalling
 
-## No initialization option
+Uninstalling is done in two steps:
 
-This is an option flag that doesn't update any buckets before running the installer. This is way faster and recomended to be used if you are planning on rebuilding with depy a bunch of times and you are not chaning anything about your buckets. **ANY TIME YOU CHANGE ANYTHING ABOUT A BUCKET YOU MUST RUN DEPY AT LEAST ONCE WITHOUT THIS SETTING**
+First:
+```
+depy -d
+```
+This uninstalls all apps under `%userprofile%/depy/scoop` and can also be used as a cleanup tool to cleanup once in a while.
+
+Second:
+```
+scoop uninstall depy
+```
+This just uninstalls the exe itself which is very small.
