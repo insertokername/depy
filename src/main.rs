@@ -1,21 +1,6 @@
 // #![allow(dead_code)]
-#[macro_use]
-extern crate lazy_static;
 
-use clap::Parser;
-
-mod args;
-mod dir;
-mod env_var;
-mod json_installer;
-mod manifest;
-mod package;
-mod parse_json_manifest;
-mod shell;
-
-lazy_static! {
-    pub static ref ARGS: args::Args = args::Args::parse();
-}
+use depy::{ARGS, shell, json_installer};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::new()
