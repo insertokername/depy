@@ -1,3 +1,4 @@
 TODO:
-  implement special emergency cleanup mode to reset paths
   make operations faster by packing them into a single env set
+  delete shortcuts
+  cleanup path operation

@@ -1,14 +1,16 @@
-use druid::widget::{Align, Flex, Label, TextBox, Button};
-use druid::{AppLauncher, Data, Env, Lens, LocalizedString, Widget, WindowDesc, WidgetExt};
+use druid::widget::{Container, Flex, Label, Scroll, TextBox};
+use druid::{
+    AppLauncher, Color, Data, Env, Lens, LocalizedString, UnitPoint, Widget, WidgetExt, WindowDesc,
+};
 
 const VERTICAL_WIDGET_SPACING: f64 = 20.0;
 const TEXT_BOX_WIDTH: f64 = 200.0;
-const WINDOW_TITLE: LocalizedString<AppState> = LocalizedString::new("Hello World!");
+const WINDOW_TITLE: LocalizedString<AppState> = LocalizedString::new("Depy");
 
 #[derive(Clone, Data, Lens)]
-struct AppState{
+struct AppState {
     value: i32,
-    name: String,
+    search_term: String,
 }
 
 fn main() {
@@ -20,7 +22,7 @@ fn main() {
     // create the initial app state
     let initial_state = AppState {
         value: 30,
-        name: "World".into(),
+        search_term: "".into(),
     };
 
     // start the application
@@ -30,32 +32,35 @@ fn main() {
 }
 
 fn build_root_widget() -> impl Widget<AppState> {
-    // a label that will determine its text based on the current app data.
-    let label = Label::new(|data: &AppState, _env: &Env| format!("Hello {}!", data.name));
-    // a textbox that modifies `name`.
-    let textbox = TextBox::new()
+    let search_box = TextBox::new()
         .with_placeholder("Who are we greeting?")
-        .fix_width(TEXT_BOX_WIDTH)
-        .lens(AppState::name);
+        .lens(AppState::search_term);
+    let search_bar = Container::new(
+        Container::new(search_box)
+            .rounded(2.0)
+            .expand_width()
+            .padding(10.0),
+    )
+    .expand_width()
+    .border(Color::RED, 1.0);
 
-    let btn_label = Label::dynamic(|data: &AppState, _env: &Env| format!("{}", data.value));
-    let inc_button =
-        Button::new("Increment").on_click(|_ctx, data: &mut AppState, _env| data.value += 1);
-    let dec_button =
-        Button::new("Decrement").on_click(|_ctx, data: &mut AppState, _env| data.value -= 1);
+    let list = {
+        let mut col = Flex::column();
+        let cols = 30;
 
-    // arrange the two widgets vertically, with some padding
-    let layout = Flex::column()
-        .with_child(label)
-        .with_spacer(VERTICAL_WIDGET_SPACING)
-        .with_child(textbox)
-        .with_child(btn_label)
-        .with_spacer(8.0)
-        .with_child(inc_button)
-        .with_child(dec_button);
+        for _ in 0..cols {
+            col.add_child(Label::new("20"));
+        }
 
-    // center the two widgets in the available space
-    Align::centered(layout)
+        Scroll::new(
+            Container::new(col)
+                .border(Color::RED, 1.0)
+                .padding(10.0),
+        )
+        .expand_width()
+    };
 
-        
+    Flex::column()
+        .with_child(search_bar)
+        .with_flex_child(list, 1.0)
 }
