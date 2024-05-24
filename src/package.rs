@@ -12,7 +12,7 @@ pub enum PackageError {
     VersionFormatError,
 }
 
-#[derive(Data, Clone)]
+#[derive(Data, Clone, Debug)]
 pub struct Package {
     pub bucket: String,
     pub bucket_name: String,
@@ -96,5 +96,30 @@ impl Package {
             name,
             version,
         })
+    }
+
+    pub fn query_local_buckets() -> Result<Vec<Package>, Box<dyn std::error::Error>> {
+        //find all buckets in depyScoop
+
+        let buckets = std::fs::read_dir(crate::dir::get_depy_dir_location() + "\\buckets")
+            .expect("Couldn't find depy installation");
+
+        for bucket in buckets {
+            let manifests = std::fs::read_dir(
+                    match bucket{
+                        Ok(val)=>val,
+                        Err(err)=>return Err(err.into()),
+                    }.path().join("bucket")
+            );
+
+            println!("rand {:#?}",manifests);
+        }
+
+        // for path in buckets{
+        //     println!("{:#?}",path);
+        // }
+        //for each bucket find all manifests (bucketname/bucket/*)
+
+        return Ok(vec![]);
     }
 }

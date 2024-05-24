@@ -4,3 +4,8 @@ TODO:
   make operations faster by packing them into a single env set
   delete shortcuts
   cleanup path operation
+
+  pacakge search:
+    find all buckets in scoop install
+    for each bucket find the manifest list
+    search for key term in manifest
