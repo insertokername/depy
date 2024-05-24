@@ -1,13 +1,33 @@
+use depy::package::{self, Package};
+use druid::im::Vector;
 use druid::theme::*;
-use druid::widget::{Container, Flex, Label, Scroll, TextBox};
+use druid::widget::{Button, Container, Flex, Label, LensWrap, List, Scroll, TextBox};
 use druid::{Color, Widget, WidgetExt};
 
 use super::AppState;
 
+fn outline(input: impl Widget<AppState> + 'static) -> impl Widget<AppState> {
+    Container::new(input).border(Color::RED, 1.0).padding(10.0)
+}
+
+fn package_widget() -> impl Widget<package::Package> {
+    Flex::column()
+        .cross_axis_alignment(druid::widget::CrossAxisAlignment::Start)
+        .with_child(
+            Label::dynamic(|data: &Package, _| format!("{}", &data.name))
+                .with_text_size(TEXT_SIZE_LARGE),
+        )
+        .with_child(
+            Label::dynamic(|data: &Package, _| format!("from bucket: {}", &data.bucket_name))
+                .with_text_size(TEXT_SIZE_NORMAL)
+                .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
+        )
+}
+
 pub fn build_root_widget() -> impl Widget<AppState> {
     let search_box = TextBox::new()
         .with_text_size(TEXT_SIZE_LARGE)
-        .with_placeholder("Who are we greeting?")
+        .with_placeholder("Package name")
         .lens(AppState::search_term);
     let search_bar = Container::new(
         Container::new(search_box)
@@ -15,21 +35,22 @@ pub fn build_root_widget() -> impl Widget<AppState> {
             .expand_width()
             .padding(10.0),
     )
-    .expand_width()
-    .border(Color::RED, 1.0);
+    .expand_width();
 
-    let list = {
-        let mut col = Flex::column();
-        let cols = 30;
+    let other_list = Scroll::new(LensWrap::new(
+        // List::new(|| Label::dynamic(|data, _| format!("List item: {data}"))),
+        List::new(|| package_widget()),
+        AppState::package_list,
+    ))
+    .expand_width();
 
-        for _ in 0..cols {
-            col.add_child(Label::new("20").with_text_size(TEXT_SIZE_LARGE));
-        }
-
-        Scroll::new(Container::new(col).border(Color::RED, 1.0).padding(10.0)).expand_width()
-    };
+    let add_pkg_button = Button::new("Search Package").on_click(|_, data: &mut AppState, _| {
+        data.package_list = Vector::new();
+    });
 
     Flex::column()
         .with_child(search_bar)
-        .with_flex_child(list, 1.0)
+        .with_child(add_pkg_button)
+        .with_flex_child(other_list, 1.0)
+    // .with_flex_child(list, 1.0)
 }

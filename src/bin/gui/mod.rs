@@ -1,16 +1,20 @@
-use druid::{Data, Lens};
+use depy::package;
+use druid::{im::Vector, Data, Lens};
 
 pub mod elements;
 pub mod theme;
 
 #[derive(Clone, Data, Lens)]
 pub struct AppState {
-    value: i32,
     search_term: String,
+    package_list: Vector<package::Package>,
 }
 
 impl AppState {
-    pub fn new(value: i32, search_term: String) -> AppState {
-        AppState { value, search_term }
+    pub fn default() -> AppState {
+        AppState {
+            search_term: "".to_string(),
+            package_list: Vector::new(),
+        }
     }
 }

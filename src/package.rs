@@ -1,3 +1,5 @@
+use druid::Data;
+
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum PackageError {
     #[error("Error: Invalid bucket_url format!")]
@@ -10,6 +12,7 @@ pub enum PackageError {
     VersionFormatError,
 }
 
+#[derive(Data, Clone)]
 pub struct Package {
     pub bucket: String,
     pub bucket_name: String,

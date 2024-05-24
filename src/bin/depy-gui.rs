@@ -8,9 +8,9 @@ const WINDOW_TITLE: LocalizedString<gui::AppState> = LocalizedString::new("Depy"
 fn main() {
     let main_window = WindowDesc::new(elements::build_root_widget())
         .title(WINDOW_TITLE)
-        .window_size((400.0, 400.0));
+        .window_size((600.0, 500.0));
 
-    let initial_state = AppState::new(30, "".into());
+    let initial_state = AppState::default();
 
     AppLauncher::with_window(main_window)
         .configure_env(theme::setup_theme)
