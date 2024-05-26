@@ -1,4 +1,4 @@
-use druid::Data;
+use druid::{im::Vector, Data};
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum PackageError {
@@ -98,21 +98,37 @@ impl Package {
         })
     }
 
-    pub fn query_local_buckets() -> Result<Vec<Package>, Box<dyn std::error::Error>> {
-        //find all buckets in depyScoop
+    pub fn query_local_buckets(query: &str) -> Result<Vector<String>, Box<dyn std::error::Error>> {
+        let mut out_vect = Vector::<String>::new();
 
         let buckets = std::fs::read_dir(crate::dir::get_depy_dir_location() + "\\buckets")
             .expect("Couldn't find depy installation");
 
         for bucket in buckets {
-            let manifests = std::fs::read_dir(
-                    match bucket{
-                        Ok(val)=>val,
-                        Err(err)=>return Err(err.into()),
-                    }.path().join("bucket")
-            );
+            let ok_bucket = match bucket {
+                Ok(val) => val,
+                Err(err) => return Err(err.into()),
+            };
 
-            println!("rand {:#?}",manifests);
+            let manifests = std::fs::read_dir(ok_bucket.path().join("bucket"));
+
+            let ok_manifests = match manifests {
+                Ok(val) => val,
+                Err(_) => {
+                    log::error!("Found invalid bucket at:{:#?}", ok_bucket);
+                    continue;
+                }
+            };
+            out_vect.extend(
+                ok_manifests
+                    .filter_map(|val| {val.ok()} )
+                    .filter(|val| 
+                        {
+                            val.file_name().to_str().expect("invalid manifest name!").contains(query)                            
+                        })
+                    .map(|val|val.file_name().into_string().unwrap())
+                    .collect::<Vector<String>>(),
+            );
         }
 
         // for path in buckets{
@@ -120,6 +136,6 @@ impl Package {
         // }
         //for each bucket find all manifests (bucketname/bucket/*)
 
-        return Ok(vec![]);
+        return Ok(out_vect);
     }
 }

@@ -1,6 +1,6 @@
 // #![allow(dead_code)]
 
-use depy::{ARGS, shell, json_installer};
+use depy::{ARGS, shell, installer};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::new()
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    if let Err(err) = json_installer::install(json_value) {
+    if let Err(err) = installer::install(json_value) {
         log::error!("Error occured while installing from depy file!");
         return Err(err);
     }
