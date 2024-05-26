@@ -1,5 +1,7 @@
 use druid::{im::Vector, Data};
 
+use crate::parse_json_manifest;
+
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum PackageError {
     #[error("Error: Invalid bucket_url format!")]
@@ -98,8 +100,8 @@ impl Package {
         })
     }
 
-    pub fn query_local_buckets(query: &str) -> Result<Vector<String>, Box<dyn std::error::Error>> {
-        let mut out_vect = Vector::<String>::new();
+    pub fn query_local_buckets(query: &str) -> Result<Vector<Package>, Box<dyn std::error::Error>> {
+        let mut out_vect = Vector::<Package>::new();
 
         let buckets = std::fs::read_dir(crate::dir::get_depy_dir_location() + "\\buckets")
             .expect("Couldn't find depy installation");
@@ -115,19 +117,40 @@ impl Package {
             let ok_manifests = match manifests {
                 Ok(val) => val,
                 Err(_) => {
-                    log::error!("Found invalid bucket at:{:#?}", ok_bucket);
+                    println!("Found invalid bucket at:{:#?}", ok_bucket);
                     continue;
                 }
             };
+
             out_vect.extend(
                 ok_manifests
-                    .filter_map(|val| {val.ok()} )
-                    .filter(|val| 
+                    .filter_map(|val| val.ok())
+                    .filter_map(|val| {
+                        let filename = val.file_name();
+                        let ok_filename = filename
+                            .to_str()
+                            .expect("invalid manifest name!");
+
+                        let manifest_contents = std::fs::read_to_string(val.path()).unwrap();
+                        let manifest_json: serde_json::Value =
+                            serde_json::from_str(&manifest_contents).unwrap();
+
+                        // println!("curently at manifes: {ok_filename}");
+                        if ok_filename.ends_with(".json")
+                            && (ok_filename.contains(query)
+                                || parse_json_manifest::query_bin(&manifest_json, query).unwrap())
                         {
-                            val.file_name().to_str().expect("invalid manifest name!").contains(query)                            
-                        })
-                    .map(|val|val.file_name().into_string().unwrap())
-                    .collect::<Vector<String>>(),
+                            Some(Package {
+                                bucket: "some".into(),
+                                bucket_name: "some".into(),
+                                name: ok_filename.into(),
+                                version: parse_json_manifest::get_version(&manifest_json).unwrap(),
+                            })
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vector<Package>>(),
             );
         }
 

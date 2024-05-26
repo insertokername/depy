@@ -8,6 +8,10 @@ pub enum ParseJsonError {
     EnvPathFormatError,
     #[error("Error: Improperly formated environment variable!")]
     EnvVarFormatError,
+    #[error("Error: Improperly formated bin attr!")]
+    BinFormatError,
+    #[error("Error: Couldn't find version attributes!")]
+    MissingVersionError,
 }
 
 fn env_path_to_vec(value: &serde_json::Value) -> Result<Vec<String>, ParseJsonError> {
@@ -75,10 +79,105 @@ pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<EnvVar>, P
     };
 
     if !json_body["architecture"][arch]["env_set"].is_null() {
-        out_vec.extend(
-            EnvVar::from_value(&json_body["architecture"][arch]["env_set"])?,
-        );
+        out_vec.extend(EnvVar::from_value(
+            &json_body["architecture"][arch]["env_set"],
+        )?);
     }
 
     return Ok(out_vec);
+}
+
+fn check_bin(
+    bin_attr: &serde_json::Value,
+    query: &str,
+) -> Result<bool, ParseJsonError> {
+    if bin_attr.is_string() {
+        Ok(bin_attr
+            .as_str()
+            .unwrap()
+            .contains(query))
+    } else if bin_attr.is_array() {
+        let are_val_ok = bin_attr
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|val| {
+                let valid_arr = if val.is_array() {
+                    val.as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|val| val.is_string())
+                } else {
+                    false
+                };
+                (val.is_array() && valid_arr) || val.is_string()
+            });
+
+        if !are_val_ok {
+            return Err(ParseJsonError::BinFormatError);
+        }
+
+        Ok(bin_attr
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|val| {
+                if val.is_array() {
+                    val.as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|alias_or_name| alias_or_name.as_str().unwrap().contains(query))
+                } else {
+                    val.as_str().unwrap().contains(query)
+                }
+            }))
+
+        // Ok(ok_values.iter().any(|val| {
+        //     val.iter()
+        //         .any(|alias_or_name| !alias_or_name.as_str().unwrap().contains(query))
+        // }))
+    } else {
+        Err(ParseJsonError::BinFormatError)
+    }
+}
+
+/// checks all bins in a manifest for a certain query
+pub fn query_bin(
+    json_body: &serde_json::Value,
+    query: &str,
+) -> Result<bool, ParseJsonError> {
+    if !json_body["bin"].is_null() {
+        let ok_bin = match check_bin(&json_body["bin"], query) {
+            Ok(val) => val,
+            Err(err) => return Err(err),
+        };
+        if ok_bin {
+            return Ok(true);
+        }
+    }
+
+    let arch = match std::env::consts::ARCH {
+        "x86" => "32bit",
+        "x86_64" => "64bit",
+        "aarch64" => "arm64",
+        _ => return Err(ParseJsonError::ArchError),
+    };
+    if !json_body["architecture"][arch]["bin"].is_null() {
+        let ok_bin = match check_bin(&json_body["architecture"][arch]["bin"], query) {
+            Ok(val) => val,
+            Err(err) => return Err(err),
+        };
+        if ok_bin {
+            return Ok(true);
+        }
+    }
+
+    return Ok(false);
+}
+
+pub fn get_version(json_body: &serde_json::Value) -> Result<String, Box<dyn std::error::Error>> {
+    match json_body["version"].as_str() {
+        Some(out) => Ok(out.to_string()),
+        None => Err(ParseJsonError::MissingVersionError.into()),
+    }
 }

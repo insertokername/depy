@@ -9,3 +9,6 @@ TODO:
     find all buckets in scoop install
     for each bucket find the manifest list
     search for key term in manifest
+
+  add deep search option with bin locations search included
+  better error handling AGAIN
