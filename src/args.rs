@@ -22,4 +22,13 @@ pub struct Args {
     /// If set delete packages that can't be uninstalled with del -f {package_name}
     #[arg(short, long)]
     pub force_uninstall: bool,
+
+    /// Take a package name to search for in the locally installed buckets
+    #[arg(short, long)]
+    pub search: Option<String>,
+
+    /// Take a package name to search for in the locally installed buckets
+    #[arg(short='S', long)]
+    pub deep_search: Option<String>
+
 }

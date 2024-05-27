@@ -1,4 +1,4 @@
-use crate::{package, parse_json_manifest, shell};
+use crate::{package, parse_json_manifest, shell, ARGS};
 use druid::im::Vector;
 
 pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
@@ -73,7 +73,8 @@ pub fn query_local_buckets(
 
                     if ok_filename.ends_with(".json")
                         && (ok_filename.contains(query)
-                            || parse_json_manifest::query_bin(&manifest_json, query).unwrap())
+                            || (ARGS.deep_search.is_some()
+                                && parse_json_manifest::query_bin(&manifest_json, query).unwrap()))
                     {
                         Some(package::Package {
                             bucket: "some".into(),

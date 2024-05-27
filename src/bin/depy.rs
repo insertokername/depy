@@ -1,6 +1,6 @@
 // #![allow(dead_code)]
 
-use depy::{ARGS, shell, installer};
+use depy::{bucket, installer, shell, ARGS};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::new()
@@ -13,9 +13,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_timestamp(None)
         .init();
 
-    if ARGS.dir_cleanup{
+    if ARGS.dir_cleanup {
         shell::uninstall_depy()?;
-        return  Ok(());
+        return Ok(());
+    }
+
+    if ARGS.search.is_some() || ARGS.deep_search.is_some(){
+        let query = ARGS.search.as_ref().unwrap_or_else(||ARGS.deep_search.as_ref().unwrap());
+        println!("query: '{query}'");
+        println!(
+            "Found following packages: {:#?}",
+            bucket::query_local_buckets(query).unwrap()
+        );
+        return Ok(())
     }
 
     let depy_contents = match std::fs::read_to_string("./depy.json") {
