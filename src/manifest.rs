@@ -1,4 +1,4 @@
-use crate::{env_var::EnvVar, parse_json_manifest};
+use crate::{env_var, parse_json_manifest};
 
 /// Struct version of a manifest.json
 #[derive(Debug, PartialEq)]
@@ -6,7 +6,7 @@ pub struct Manifest {
     pub version: String,
     pub name: String,
     pub added_paths: Vec<String>,
-    pub env_vars: Vec<EnvVar>,
+    pub env_vars: Vec<env_var::EnvVar>,
 }
 
 impl Manifest {
@@ -29,8 +29,7 @@ impl Manifest {
         manifest: &str,
         name: String,
         version: String,
-    ) -> Result<Manifest,
-     Box<dyn std::error::Error>> {
+    ) -> Result<Manifest, Box<dyn std::error::Error>> {
         let parsed_json: serde_json::Value = serde_json::from_str(manifest)?;
         Ok(Manifest::new(&parsed_json, name, version)?)
     }

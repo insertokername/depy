@@ -1,4 +1,4 @@
-use crate::parse_json_manifest::ParseJsonError;
+use crate::parse_json_manifest;
 
 #[derive(Debug, PartialEq)]
 pub struct EnvVar {
@@ -12,18 +12,18 @@ impl EnvVar {
     }
 
     /// Transforms a serde val into a vec of environment variables
-    pub fn from_value(value: &serde_json::Value) -> Result<Vec<EnvVar>, ParseJsonError> {
+    pub fn from_value(value: &serde_json::Value) -> Result<Vec<EnvVar>, parse_json_manifest::ParseJsonError> {
         let mut env_var_iter = if let Some(out_as_obj) = value.as_object() {
             out_as_obj
         } else {
             log::error!("Improperly formated environment variable {value}!");
-            return Err(ParseJsonError::EnvVarFormatError);
+            return Err(parse_json_manifest::ParseJsonError::EnvVarFormatError);
         }
         .iter();
 
         if !env_var_iter.all(|val| val.1.is_string()) {
             log::error!("Improperly formated environment variable {value}!");
-            return Err(ParseJsonError::EnvVarFormatError);
+            return Err(parse_json_manifest::ParseJsonError::EnvVarFormatError);
         }
 
         // this is safe because of earlier checks

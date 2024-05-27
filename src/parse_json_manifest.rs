@@ -1,4 +1,4 @@
-use crate::env_var::EnvVar;
+use crate::env_var;
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ParseJsonError {
@@ -64,11 +64,11 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<String>
     return Ok(out_vec);
 }
 
-pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<EnvVar>, ParseJsonError> {
-    let mut out_vec: Vec<EnvVar> = vec![];
+pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<env_var::EnvVar>, ParseJsonError> {
+    let mut out_vec: Vec<env_var::EnvVar> = vec![];
 
     if !json_body["env_set"].is_null() {
-        out_vec.extend(EnvVar::from_value(&json_body["env_set"])?);
+        out_vec.extend(env_var::EnvVar::from_value(&json_body["env_set"])?);
     }
 
     let arch = match std::env::consts::ARCH {
@@ -79,7 +79,7 @@ pub fn get_env_variables(json_body: &serde_json::Value) -> Result<Vec<EnvVar>, P
     };
 
     if !json_body["architecture"][arch]["env_set"].is_null() {
-        out_vec.extend(EnvVar::from_value(
+        out_vec.extend(env_var::EnvVar::from_value(
             &json_body["architecture"][arch]["env_set"],
         )?);
     }

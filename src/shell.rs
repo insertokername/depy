@@ -1,9 +1,6 @@
 use path_absolutize::Absolutize;
 
-use crate::{
-    dir::{self},
-    manifest,
-};
+use crate::{dir, manifest};
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ShellError {
@@ -211,7 +208,11 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
 
     let path_local_shims = std::path::Path::new(local_shims);
     paths += &[
-        path_local_shims.absolutize().unwrap().to_str().unwrap(),
+        path_local_shims
+            .absolutize()
+            .unwrap()
+            .to_str()
+            .unwrap(),
         ";",
     ]
     .concat();
