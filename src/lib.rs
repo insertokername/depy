@@ -1,4 +1,5 @@
 pub mod args;
+pub mod bucket;
 pub mod dir;
 pub mod env_var;
 pub mod installer;

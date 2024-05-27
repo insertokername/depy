@@ -7,10 +7,11 @@ pub enum InstallerError {
 }
 
 use crate::{
+    bucket::{add_bucket, clean_buckets},
     dir::cleanup_shims,
     manifest::Manifest,
     package,
-    shell::{add_bucket, clean_buckets, init_depy, install_cleanly, make_devshell},
+    shell::{init_depy, install_cleanly, make_devshell},
 };
 
 fn common_bucket_names(bucket_name: &str) -> &str {
