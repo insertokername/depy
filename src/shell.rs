@@ -277,7 +277,7 @@ pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
         let cmd_output = match run_cmd_in_depy_dir(
             &[
                 "scoop config use_isolated_path DEPY_TEMP_VAL & ",
-                &format!("scoop uninstall {package} & "),
+                &format!("scoop uninstall {package} --purge & "),
                 "set DEPY_TEMP_VAL= & ",
                 "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
                 "scoop config rm use_isolated_path",

@@ -7,40 +7,19 @@ pub enum InstallerError {
 }
 
 use crate::{
-    bucket::{add_bucket, clean_buckets},
-    dir::cleanup_shims,
+    bucket,
+    dir,
     manifest::Manifest,
     package,
-    shell::{init_depy, install_cleanly, make_devshell},
+    shell,
 };
 
-fn common_bucket_names(bucket_name: &str) -> &str {
-    match bucket_name {
-        "main" => "https://github.com/ScoopInstaller/Main",
-        "extras" => "https://github.com/ScoopInstaller/Extras",
-        "versions" => "https://github.com/ScoopInstaller/Versions",
-        _ => bucket_name,
-    }
-}
-
-fn parse_github_to_raw(bucket_url: &str) -> String {
-    if !bucket_url.starts_with("https://github.com") {
-        println!("Expected bucket: \"{bucket_url}\" to be github repository! ");
-        std::process::exit(1)
-    }
-    bucket_url.replace("github.com", "raw.githubusercontent.com") + "/master/bucket"
-}
-
-fn resolve_bucket(bucket_name: &str) -> String {
-    let bucket_url = common_bucket_names(bucket_name);
-    parse_github_to_raw(bucket_url)
-}
 
 /// Installs all programs specified in a json file
 pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
     if !crate::ARGS.no_init{
-        clean_buckets()?;
-        init_depy()?;
+        bucket::clean_buckets()?;
+        shell::init_depy()?;
     }
     let mut manifest_vec: Vec<Manifest> = vec![];
     let packages = if let Some(out) = install_json.as_array() {
@@ -52,13 +31,13 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
     for package in packages {
         let package = match package::Package::from_value(package) {
             Ok(out) => out,
-            Err(err) => {
+            Err(err) => {   
                 log::error!("Encountered error {err} while parsing packages!");
                 return Err(Box::new(err));
             }
         };
 
-        let bucket_url = resolve_bucket(&package.bucket);
+        let bucket_url = bucket::resolve_bucket_raw(&package.bucket);
         let app_url = bucket_url + "/" + &package.name + ".json";
 
         let response = match ureq::get(&app_url).call() {
@@ -91,16 +70,16 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
         };
         manifest_vec.push(parsed_manifest);
 
-        add_bucket(common_bucket_names(&package.bucket), &package.bucket_name)?;
+        bucket::add_bucket(bucket::resolve_bucket_name(&package.bucket), &package.bucket_name)?;
     }
 
     for man in &manifest_vec {
-        install_cleanly(&man.name, &man.version)?;
+        shell::install_cleanly(&man.name, &man.version)?;
     }
 
-    cleanup_shims()?;
-    make_devshell(manifest_vec)?;
-    cleanup_shims()?;
+    dir::cleanup_shims()?;
+    shell::make_devshell(manifest_vec)?;
+    dir::cleanup_shims()?;
 
     Ok(())
 }

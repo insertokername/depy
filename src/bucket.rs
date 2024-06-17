@@ -34,66 +34,94 @@ pub fn add_bucket(
     Ok(())
 }
 
+pub fn resolve_bucket_name(bucket_name: &str) -> &str {
+    match bucket_name {
+        "main" => "https://github.com/ScoopInstaller/Main",
+        "extras" => "https://github.com/ScoopInstaller/Extras",
+        "versions" => "https://github.com/ScoopInstaller/Versions",
+        _ => bucket_name,
+    }
+}
+
+fn parse_github_to_raw(bucket_url: &str) -> String {
+    if !bucket_url.starts_with("https://github.com") {
+        println!("Expected bucket: \"{bucket_url}\" to be github repository! ");
+        std::process::exit(1)
+    }
+    bucket_url.replace("github.com", "raw.githubusercontent.com") + "/master/bucket"
+}
+
+pub fn resolve_bucket_raw(bucket_name: &str) -> String {
+    let bucket_url = resolve_bucket_name(bucket_name);
+    parse_github_to_raw(bucket_url)
+}
+
+fn query_single_bucket(
+    query: &str,
+    bucket: std::path::PathBuf,
+) -> Result<Vector<package::Package>, Box<dyn std::error::Error>> {
+    let manifests = std::fs::read_dir(bucket.join("bucket"));
+
+    let manifests = match manifests {
+        Ok(out) => out,
+        Err(err) => {
+            println!("Found inoutid bucket at:{:#?}", bucket);
+            return Err(err.into());
+        }
+    };
+
+    Ok(manifests
+        //TODO error handling
+        .filter_map(|out| out.ok())
+        .filter_map(|out| {
+            let filename = out.file_name();
+            let filename = filename
+                .to_str()
+                .expect("invalid manifest name!");
+
+            let manifest_contents = std::fs::read_to_string(out.path()).unwrap();
+            //TODO error handling
+            let manifest_json: serde_json::Value =
+                serde_json::from_str(&manifest_contents).unwrap();
+
+            // println!("{filename}");
+            if filename.ends_with(".json")
+                && (filename.contains(query)
+                    || (ARGS.deep_search.is_some()
+                        && parse_json_manifest::query_bin(&manifest_json, query).unwrap()))
+            {
+                //TODO proper bucket naming
+                Some(package::Package {
+                    bucket: "some".into(),
+                    bucket_name: "some".into(),
+                    name: filename.into(),
+                    version: parse_json_manifest::get_version(&manifest_json).unwrap(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect::<Vector<package::Package>>())
+}
+
 pub fn query_local_buckets(
     query: &str
 ) -> Result<Vector<package::Package>, Box<dyn std::error::Error>> {
     let mut out_vect = Vector::<package::Package>::new();
 
+    //TODO document this behaviour and error handling
     let buckets = std::fs::read_dir(crate::dir::get_depy_dir_location() + "\\buckets")
         .expect("Couldn't find depy installation");
 
+    //TODO error handling
     for bucket in buckets {
-        let ok_bucket = match bucket {
-            Ok(val) => val,
+        let bucket = match bucket {
+            Ok(out) => out,
             Err(err) => return Err(err.into()),
         };
 
-        let manifests = std::fs::read_dir(ok_bucket.path().join("bucket"));
-
-        let ok_manifests = match manifests {
-            Ok(val) => val,
-            Err(_) => {
-                println!("Found invalid bucket at:{:#?}", ok_bucket);
-                continue;
-            }
-        };
-
-        out_vect.extend(
-            ok_manifests
-                .filter_map(|val| val.ok())
-                .filter_map(|val| {
-                    let filename = val.file_name();
-                    let ok_filename = filename
-                        .to_str()
-                        .expect("invalid manifest name!");
-
-                    let manifest_contents = std::fs::read_to_string(val.path()).unwrap();
-                    let manifest_json: serde_json::Value =
-                        serde_json::from_str(&manifest_contents).unwrap();
-
-                    if ok_filename.ends_with(".json")
-                        && (ok_filename.contains(query)
-                            || (ARGS.deep_search.is_some()
-                                && parse_json_manifest::query_bin(&manifest_json, query).unwrap()))
-                    {
-                        Some(package::Package {
-                            bucket: "some".into(),
-                            bucket_name: "some".into(),
-                            name: ok_filename.into(),
-                            version: parse_json_manifest::get_version(&manifest_json).unwrap(),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vector<package::Package>>(),
-        );
+        //TODO error handling
+        out_vect.extend(query_single_bucket(query, bucket.path()).unwrap());
     }
-
-    // for path in buckets{
-    //     println!("{:#?}",path);
-    // }
-    //for each bucket find all manifests (bucketname/bucket/*)
-
     return Ok(out_vect);
 }
