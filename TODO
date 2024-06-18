@@ -6,9 +6,8 @@ TODO:
   cleanup path operation
 
   pacakge search:
-    find all buckets in scoop install
-    for each bucket find the manifest list
-    search for key term in manifest
+    show "no packages found" screen if no packages were found 
+    better error handling AGAIN
 
-  better error handling AGAIN
-  reload buckets button
+  manage buckets button ( add remove update )
+  

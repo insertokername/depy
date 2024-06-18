@@ -381,6 +381,7 @@ dependencies = [
 name = "depy"
 version = "1.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "copy_dir",
  "druid",

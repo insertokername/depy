@@ -1,6 +1,12 @@
 use crate::{package, parse_json_manifest, shell, ARGS};
 use druid::im::Vector;
 
+#[derive(thiserror::Error, Debug, PartialEq)]
+pub enum BucketError {
+    #[error("Error: Thread paniced while searching for app! Paniced on error {0}")]
+    ThreadSearchError(String),
+}
+
 pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
     if let Err(err) = shell::run_cmd_in_depy_dir("scoop bucket rm *") {
         log::error!("Couldn't clean buckets!\nError:{err}");
