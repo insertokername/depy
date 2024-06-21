@@ -13,6 +13,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_timestamp(None)
         .init();
 
+    if ARGS.only_initialize{
+        shell::init_depy()?;
+        return Ok(());
+    }
+
     if ARGS.dir_cleanup {
         shell::uninstall_depy()?;
         return Ok(());

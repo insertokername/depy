@@ -19,6 +19,10 @@ pub struct Args {
     // #[arg(short, long)]
     // pub path_cleanup: bool,
 
+    /// If set initializes depy under %userprofile%/depy and exists
+    #[arg(short='i', long)]
+    pub only_initialize: bool,
+
     /// If set delete packages that can't be uninstalled with del -f {package_name}
     #[arg(short, long)]
     pub force_uninstall: bool,

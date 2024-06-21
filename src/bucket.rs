@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{package, parse_json_manifest, shell};
 use druid::im::Vector;
 
@@ -5,6 +7,8 @@ use druid::im::Vector;
 pub enum BucketError {
     #[error("Error: Thread paniced while searching for app! Paniced on error {0}")]
     ThreadSearchError(String),
+    #[error("Error: Couldn't determine the url of bucket {0}!")]
+    BucketUrlError(PathBuf),
 }
 
 pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
@@ -97,10 +101,10 @@ fn query_single_bucket(
                     || (deep_search
                         && parse_json_manifest::query_bin(&manifest_json, query).unwrap()))
             {
-                //TODO proper bucket naming
                 Some(package::Package {
-                    bucket: "some".into(),
-                    bucket_name: "some".into(),
+                    // this will never be used in the context of a package search since you have to query local buckets you don t need their url
+                    bucket: "".into(),
+                    bucket_name: bucket.file_name().unwrap().to_str().unwrap().to_string(),
                     name: filename.into(),
                     version: parse_json_manifest::get_version(&manifest_json).unwrap(),
                 })
