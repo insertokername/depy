@@ -6,8 +6,13 @@ TODO:
   cleanup path operation
 
   pacakge search:
-    show "no packages found" screen if no packages were found 
     better error handling AGAIN
+    deep search option
+  
+  install system:
+    add button to add/remove package
+    update all button
+    show all added packages
 
   manage buckets button ( add remove update )
   

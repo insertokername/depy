@@ -28,6 +28,8 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
         if let Event::Command(cmd) = event {
             if let Some(list) = cmd.get(FINISHED_SEARCH) {
                 data.package_list = list.clone();
+                data.no_packages_found = list.is_empty();
+                data.last_search_term = data.search_term.clone();
                 data.is_searching = false;
                 ctx.set_handled();
             }
@@ -35,6 +37,8 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
         if let Event::Command(cmd) = event {
             if let Some(err_msg) = cmd.get(FAILED_SEARCH) {
                 data.package_list = vector![];
+                data.no_packages_found = false;
+                data.last_search_term = data.search_term.clone();
                 data.is_searching = false;
                 match &mut data.error_message {
                     Some(some) => {
@@ -102,6 +106,15 @@ pub fn build_root_widget() -> impl Widget<AppState> {
         Flex::column(),
     );
 
+    let no_packages_found_text = Either::new(
+        |data: &AppState, _| data.no_packages_found,
+        Label::dynamic(|data: &AppState, _| {
+            format!("No packages found containing '{}'", data.last_search_term)
+        })
+        .with_text_size(TEXT_SIZE_NORMAL)
+        .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
+        Flex::column(),
+    );
     let other_list = Scroll::new(LensWrap::new(
         // List::new(|| Label::dynamic(|data, _| format!("List item: {data}"))),
         List::new(|| package_widget()),
@@ -152,7 +165,8 @@ pub fn build_root_widget() -> impl Widget<AppState> {
     Flex::column()
         .with_child(search_bar)
         .with_child(add_pkg_button)
+        .with_child(no_packages_found_text)
         .with_flex_child(error_box, 1.0)
-        .with_flex_child(other_list, 1.0)
+        .with_flex_child(other_list, 100.0)
         .controller(AppController)
 }
