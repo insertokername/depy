@@ -117,29 +117,33 @@ pub fn build_root_widget() -> impl Widget<AppState> {
     )
     .expand_width();
 
-    let error_box = Either::new(
+    let clean_error_button = Either::new(
         |data: &AppState, _| data.error_message.is_some(),
-        Flex::column()
-            .with_child(
-                Button::new("Clean errors")
-                    .on_click(|_, data: &mut AppState, _| data.error_message = None),
-            )
-            .with_flex_child(
-                Label::dynamic(|data: &AppState, _| {
-                    match &data.error_message {
-                        Some(some) => some,
-                        None => "Error while loading an error message!",
-                    }
-                    .to_string()
-                })
-                .with_text_size(TEXT_SIZE_LARGE)
-                .with_line_break_mode(druid::widget::LineBreaking::WordWrap)
-                .with_text_color(Color::RED)
-                .scroll()
-                .vertical(),
-                1.0,
-            ),
+        Button::new("Clean errors").on_click(|_, data: &mut AppState, _| data.error_message = None),
         Flex::column(),
+    );
+
+    let list = Scroll::new(LensWrap::new(
+        List::new(|| package_widget()),
+        AppState::package_list,
+    ))
+    .expand();
+
+    let message_box = Either::new(
+        |data: &AppState, _| data.error_message.is_some(),
+        Label::dynamic(|data: &AppState, _| {
+            match &data.error_message {
+                Some(some) => some,
+                None => "Error while loading an error message!",
+            }
+            .to_string()
+        })
+        .with_text_size(TEXT_SIZE_LARGE)
+        .with_line_break_mode(druid::widget::LineBreaking::WordWrap)
+        .with_text_color(Color::RED)
+        .scroll()
+        .vertical(),
+        list,
     );
 
     let no_packages_found_text = Either::new(
@@ -151,12 +155,6 @@ pub fn build_root_widget() -> impl Widget<AppState> {
         .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
         Flex::column(),
     );
-    let other_list = Scroll::new(LensWrap::new(
-        // List::new(|| Label::dynamic(|data, _| format!("List item: {data}"))),
-        List::new(|| package_widget()),
-        AppState::package_list,
-    ))
-    .expand_width();
 
     let search_buttons = Flex::row()
         .with_child(
@@ -182,7 +180,7 @@ pub fn build_root_widget() -> impl Widget<AppState> {
         .with_child(search_bar)
         .with_child(search_buttons)
         .with_child(no_packages_found_text)
-        .with_flex_child(error_box, 1.0)
-        .with_flex_child(other_list, 100.0)
+        .with_child(clean_error_button)
+        .with_flex_child(message_box, 1.0)
         .controller(AppController)
 }
