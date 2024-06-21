@@ -19,11 +19,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if ARGS.search.is_some() || ARGS.deep_search.is_some(){
-        let query = ARGS.search.as_ref().unwrap_or_else(||ARGS.deep_search.as_ref().unwrap());
+        let query = ARGS.search.clone().unwrap_or_else(||ARGS.deep_search.clone().unwrap());
         println!("query: '{query}'");
         println!(
             "Found following packages: {:#?}",
-            bucket::query_local_buckets(query).unwrap()
+            bucket::query_local_buckets(&query, ARGS.deep_search.is_some()).unwrap()
         );
         return Ok(())
     }

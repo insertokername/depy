@@ -7,7 +7,8 @@ TODO:
 
   pacakge search:
     better error handling AGAIN
-    deep search option
+    show correct bucket name
+    show better results in cli -s -S
   
   install system:
     add button to add/remove package

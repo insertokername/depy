@@ -1,4 +1,4 @@
-use crate::{package, parse_json_manifest, shell, ARGS};
+use crate::{package, parse_json_manifest, shell};
 use druid::im::Vector;
 
 #[derive(thiserror::Error, Debug, PartialEq)]
@@ -65,6 +65,7 @@ pub fn resolve_bucket_raw(bucket_name: &str) -> String {
 fn query_single_bucket(
     query: &str,
     bucket: std::path::PathBuf,
+    deep_search: bool,
 ) -> Result<Vector<package::Package>, Box<dyn std::error::Error>> {
     let manifests = std::fs::read_dir(bucket.join("bucket"));
 
@@ -93,7 +94,7 @@ fn query_single_bucket(
             // println!("{filename}");
             if filename.ends_with(".json")
                 && (filename.contains(query)
-                    || (ARGS.deep_search.is_some()
+                    || (deep_search
                         && parse_json_manifest::query_bin(&manifest_json, query).unwrap()))
             {
                 //TODO proper bucket naming
@@ -111,7 +112,8 @@ fn query_single_bucket(
 }
 
 pub fn query_local_buckets(
-    query: &str
+    query: &str,
+    deep_search: bool,
 ) -> Result<Vector<package::Package>, Box<dyn std::error::Error>> {
     let mut out_vect = Vector::<package::Package>::new();
 
@@ -127,7 +129,7 @@ pub fn query_local_buckets(
         };
 
         //TODO error handling
-        out_vect.extend(query_single_bucket(query, bucket.path()).unwrap());
+        out_vect.extend(query_single_bucket(query, bucket.path(), deep_search).unwrap());
     }
     return Ok(out_vect);
 }

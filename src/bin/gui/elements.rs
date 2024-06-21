@@ -54,6 +54,42 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
     }
 }
 
+fn find_packages(
+    data: &mut AppState,
+    ctx: &mut EventCtx,
+    deep_search: bool,
+) {
+    data.is_searching = true;
+
+    let sink = ctx.get_external_handle();
+    let search_term = data.search_term.clone();
+    thread::spawn(move || {
+        let result = catch_unwind(|| depy::bucket::query_local_buckets(&search_term, deep_search));
+        let flat_result = match result {
+            Ok(ok) => ok,
+            Err(err) => {
+                let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
+                    message.to_string()
+                } else if let Some(message) = err.downcast_ref::<String>() {
+                    message.clone()
+                } else {
+                    "Unknown panic occurred".to_string()
+                };
+                println!("Errored out on error: {:?}", panic_message);
+                Result::<Vector<Package>, Box<dyn std::error::Error>>::Err(
+                    depy::bucket::BucketError::ThreadSearchError(format!("{}", panic_message))
+                        .into(),
+                )
+            }
+        };
+
+        match flat_result {
+            Ok(ok) => sink.submit_command(FINISHED_SEARCH, ok, Target::Global),
+            Err(err) => sink.submit_command(FAILED_SEARCH, err.to_string(), Target::Global),
+        }
+    });
+}
+
 fn package_widget() -> impl Widget<package::Package> {
     Flex::column()
         .cross_axis_alignment(druid::widget::CrossAxisAlignment::Start)
@@ -122,49 +158,29 @@ pub fn build_root_widget() -> impl Widget<AppState> {
     ))
     .expand_width();
 
-    let add_pkg_button = Button::dynamic(|data: &AppState, _| {
-        if data.is_searching {
-            "Searching..."
-        } else {
-            "Search Package"
-        }
-        .into()
-    })
-    .on_click(|ctx, data: &mut AppState, _| {
-        data.is_searching = true;
-
-        let sink = ctx.get_external_handle();
-        let search_term = data.search_term.clone();
-        thread::spawn(move || {
-            let result = catch_unwind(|| depy::bucket::query_local_buckets(&search_term));
-            let flat_result = match result {
-                Ok(ok) => ok,
-                Err(err) => {
-                    let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
-                        message.to_string()
-                    } else if let Some(message) = err.downcast_ref::<String>() {
-                        message.clone()
-                    } else {
-                        "Unknown panic occurred".to_string()
-                    };
-                    println!("Errored out on error: {:?}", panic_message);
-                    Result::<Vector<Package>, Box<dyn std::error::Error>>::Err(
-                        depy::bucket::BucketError::ThreadSearchError(format!("{}", panic_message))
-                            .into(),
-                    )
+    let search_buttons = Flex::row()
+        .with_child(
+            Button::dynamic(|data: &AppState, _| {
+                if data.is_searching {
+                    "Searching..."
+                } else {
+                    "Search Package"
                 }
-            };
-
-            match flat_result {
-                Ok(ok) => sink.submit_command(FINISHED_SEARCH, ok, Target::Global),
-                Err(err) => sink.submit_command(FAILED_SEARCH, err.to_string(), Target::Global),
-            }
-        });
-    });
+                .into()
+            })
+            .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, false)),
+        )
+        .with_spacer(5.0)
+        .with_child(Either::new(
+            |data: &AppState, _| data.no_packages_found && !data.is_searching,
+            Button::new("Deep Search Package")
+                .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, true)),
+            Flex::column(),
+        ));
 
     Flex::column()
         .with_child(search_bar)
-        .with_child(add_pkg_button)
+        .with_child(search_buttons)
         .with_child(no_packages_found_text)
         .with_flex_child(error_box, 1.0)
         .with_flex_child(other_list, 100.0)
