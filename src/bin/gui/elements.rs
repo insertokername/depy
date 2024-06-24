@@ -169,12 +169,10 @@ pub fn build_root_widget() -> impl Widget<AppState> {
             .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, false)),
         )
         .with_spacer(5.0)
-        .with_child(Either::new(
-            |data: &AppState, _| data.no_packages_found && !data.is_searching,
+        .with_child(
             Button::new("Deep Search Package")
                 .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, true)),
-            Flex::column(),
-        ));
+        );
 
     Flex::column()
         .with_child(search_bar)
