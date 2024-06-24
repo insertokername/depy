@@ -17,7 +17,6 @@ pub enum BucketError {
     ManifestParseError(String, #[source] Box<dyn std::error::Error>),
     #[error("Error: Couldn't open the depy instalation folder: {0}!\nGot the following error: {1}\nMake sure that you have followed all depy install instructions and that the folder permisions are correct!")]
     DepyInstallationError(String, #[source] std::io::Error),
-    
 }
 
 pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
@@ -75,17 +74,18 @@ pub fn resolve_bucket_raw(bucket_name: &str) -> String {
     parse_github_to_raw(bucket_url)
 }
 
-fn open_json_file_helper(dir_entry: &DirEntry, filename: &str) -> Result<serde_json::Value, Box<dyn std::error::Error>>  {
-    let manifest_contents = std::fs::read_to_string(dir_entry.path()).map_err(|e: std::io::Error| {
-        Box::new(BucketError::ManifestReadError(
-            filename.to_string(),
-            e,
-        ))
-    })?;
+fn open_json_file_helper(
+    dir_entry: &DirEntry,
+    filename: &str,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    let manifest_contents =
+        std::fs::read_to_string(dir_entry.path()).map_err(|e: std::io::Error| {
+            Box::new(BucketError::ManifestReadError(filename.to_string(), e))
+        })?;
 
     let manifest_json: serde_json::Value =
         serde_json::from_str(&manifest_contents).map_err(|e| {
-           Box::new(BucketError::ManifestParseError(
+            Box::new(BucketError::ManifestParseError(
                 filename.to_string(),
                 Box::new(e),
             ))
@@ -117,42 +117,44 @@ fn query_single_bucket(
                 .to_str()
                 .ok_or_else(|| Box::new(BucketError::FileNameError(filename.clone())))?;
 
-            let mut json_file  = None;
-            
+            let mut json_file = None;
+
             if filename.ends_with(".json")
                 && (filename.contains(query)
-                    || (deep_search
-                        && {
-                            let temp = open_json_file_helper(&out, &filename)?;
-                            let result = parse_json_manifest::query_bin(&temp, query)?;
-                            json_file = Some(temp);
-                            result
-                        }))
+                    || (deep_search && {
+                        let temp = open_json_file_helper(&out, &filename)?;
+                        let result = parse_json_manifest::query_bin(&temp, query)?;
+                        json_file = Some(temp);
+                        result
+                    }))
             {
-                
-                if json_file.is_none(){
-                    json_file = Some(open_json_file_helper(&out, &filename)?);
-                }
                 Ok(Some(package::Package {
                     // this will never be used in the context of a package search since you have to query local buckets you don t need their url
-                    bucket: "".to_string(),
+                    bucket_url: None,
                     bucket_name: bucket
                         .file_name()
-                        .ok_or_else(|| Box::new(BucketError::FileNameError(bucket.clone().into_os_string())))?
+                        .ok_or_else(|| {
+                            Box::new(BucketError::FileNameError(bucket.clone().into_os_string()))
+                        })?
                         .to_str()
-                        .ok_or_else(|| Box::new(BucketError::FileNameError(bucket.clone().into_os_string())))?
+                        .ok_or_else(|| {
+                            Box::new(BucketError::FileNameError(bucket.clone().into_os_string()))
+                        })?
                         .to_string(),
                     name: filename.to_string(),
-                    // unwrap here is safe since it is guarateed to be Some by the assignment a few lines above
-                    version: parse_json_manifest::get_version(&json_file.unwrap()).map_err(|e|BucketError::ManifestParseError(filename.to_string(), e))?,
+                    version: parse_json_manifest::get_version(&match json_file {
+                        Some(val) => val,
+                        None => open_json_file_helper(&out, &filename)?,
+                    })
+                    .map_err(|e| BucketError::ManifestParseError(filename.to_string(), e))?,
                 }))
             } else {
                 Ok(None)
             }
         })
-        .collect::<Result<Vector<Option<package::Package>>,Box<dyn std::error::Error>>>()?
+        .collect::<Result<Vector<Option<package::Package>>, Box<dyn std::error::Error>>>()?
         .into_iter()
-        .filter_map(|a|a)
+        .filter_map(|a| a)
         .collect())
 }
 
@@ -163,8 +165,8 @@ pub fn query_local_buckets(
     let mut out_vect = Vector::<package::Package>::new();
 
     let depy_location = crate::dir::get_depy_dir_location();
-    let buckets = std::fs::read_dir(depy_location.clone()+"\\buckets")
-        .map_err(|e|BucketError::DepyInstallationError(depy_location, e))?;
+    let buckets = std::fs::read_dir(depy_location.clone() + "\\buckets")
+        .map_err(|e| BucketError::DepyInstallationError(depy_location, e))?;
 
     for bucket in buckets {
         let bucket = match bucket {

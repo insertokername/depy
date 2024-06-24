@@ -45,7 +45,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                         some.push('\n');
                         some.push_str(err_msg)
                     }
-                    None => data.error_message = Some(err_msg.clone()),
+                    None => data.error_message = Some(err_msg.to_string()),
                 }
                 ctx.set_handled();
             }

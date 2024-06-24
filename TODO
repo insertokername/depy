@@ -7,7 +7,6 @@ TODO:
 
   pacakge search:
     better error handling AGAIN
-    show correct bucket name and add an Option type instead of a String in the bucket_url
     show better results in cli -s -S
   
   install system:

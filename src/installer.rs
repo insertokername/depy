@@ -37,7 +37,7 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
             }
         };
 
-        let bucket_url = bucket::resolve_bucket_raw(&package.bucket);
+        let bucket_url = bucket::resolve_bucket_raw(&package.bucket_url.clone().unwrap());
         let app_url = bucket_url + "/" + &package.name + ".json";
 
         let response = match ureq::get(&app_url).call() {
@@ -70,7 +70,7 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
         };
         manifest_vec.push(parsed_manifest);
 
-        bucket::add_bucket(bucket::resolve_bucket_name(&package.bucket), &package.bucket_name)?;
+        bucket::add_bucket(bucket::resolve_bucket_name(package.bucket_url.unwrap().as_str()), &package.bucket_name)?;
     }
 
     for man in &manifest_vec {

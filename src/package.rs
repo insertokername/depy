@@ -16,7 +16,7 @@ pub enum PackageError {
 
 #[derive(Data, Clone, Debug)]
 pub struct Package {
-    pub bucket: String,
+    pub bucket_url: Option<String>,
     pub bucket_name: String,
     pub name: String,
     pub version: String,
@@ -29,21 +29,21 @@ impl Package {
             .as_object()
             .expect("Invalid Package format, expected each package to be an package_object\n");
 
-        let bucket_field = match package_obj.get("bucket_url") {
+        let bucket_url_field = match package_obj.get("bucket_url") {
             Some(out) => out,
             None => {
                 log::error!("Improper format found in package:{package_json}\nExpected bucket_url attribute in package");
                 return Err(PackageError::BucketUrlFormatError);
             }
         };
-        let bucket = match bucket_field.as_str() {
+        let bucket_url = Some(match bucket_url_field.as_str() {
             Some(out) => out,
             None => {
                 log::error!("Improper format found in package:{package_json}\nExpected bucket_url value to be string");
                 return Err(PackageError::BucketUrlFormatError);
             }
         }
-        .to_string();
+        .to_string());
 
         let bucket_name_field = match package_obj.get("bucket_name") {
             Some(out) => out,
@@ -93,7 +93,7 @@ impl Package {
         }
         .to_string();
         Ok(Package {
-            bucket,
+            bucket_url,
             bucket_name,
             name,
             version,
