@@ -91,17 +91,26 @@ fn find_packages(
 }
 
 fn package_widget() -> impl Widget<package::Package> {
-    Flex::column()
-        .cross_axis_alignment(druid::widget::CrossAxisAlignment::Start)
+    Flex::row()
+        .main_axis_alignment(druid::widget::MainAxisAlignment::SpaceBetween)
         .with_child(
-            Label::dynamic(|data: &Package, _| format!("{}", &data.name))
-                .with_text_size(TEXT_SIZE_LARGE),
+            Flex::column()
+                .cross_axis_alignment(druid::widget::CrossAxisAlignment::Start)
+                .with_child(
+                    Label::dynamic(|data: &Package, _| format!("{}", &data.name))
+                        .with_text_size(TEXT_SIZE_LARGE),
+                )
+                .with_child(
+                    Label::dynamic(|data: &Package, _| {
+                        format!("from bucket: {}", &data.bucket_name)
+                    })
+                    .with_text_size(TEXT_SIZE_NORMAL)
+                    .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
+                ),
         )
-        .with_child(
-            Label::dynamic(|data: &Package, _| format!("from bucket: {}", &data.bucket_name))
-                .with_text_size(TEXT_SIZE_NORMAL)
-                .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
-        )
+        .with_child(Button::new("install"))
+        .expand_width()
+        .padding((30.0, 0.0))
 }
 
 pub fn build_root_widget() -> impl Widget<AppState> {
@@ -127,7 +136,7 @@ pub fn build_root_widget() -> impl Widget<AppState> {
         List::new(|| package_widget()),
         AppState::package_list,
     ))
-    .expand();
+    .vertical();
 
     let message_box = Either::new(
         |data: &AppState, _| data.error_message.is_some(),
@@ -166,13 +175,16 @@ pub fn build_root_widget() -> impl Widget<AppState> {
                 }
                 .into()
             })
-            .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, false)),
+            .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, false))
+            .disabled_if(|data: &AppState, _| data.is_searching),
         )
         .with_spacer(5.0)
-        .with_child(
+        .with_child(Either::new(
+            |data: &AppState, _| !data.is_searching,
             Button::new("Deep Search Package")
                 .on_click(|ctx, data: &mut AppState, _| find_packages(data, ctx, true)),
-        );
+            Flex::column(),
+        ));
 
     Flex::column()
         .with_child(search_bar)
