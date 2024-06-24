@@ -131,11 +131,6 @@ fn check_bin(
                     val.as_str().unwrap().contains(query)
                 }
             }))
-
-        // Ok(ok_values.iter().any(|val| {
-        //     val.iter()
-        //         .any(|alias_or_name| !alias_or_name.as_str().unwrap().contains(query))
-        // }))
     } else {
         Err(ParseJsonError::BinFormatError)
     }
