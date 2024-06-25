@@ -1,4 +1,5 @@
-use druid::{AppLauncher, LocalizedString, WindowDesc};
+use depy::{package::Package, parse_json};
+use druid::{im::Vector, AppLauncher, LocalizedString, WindowDesc};
 
 mod gui;
 
@@ -11,7 +12,10 @@ fn main() {
 
     let mut initial_state = gui::app_state::AppState::default();
 
-    // initial_state.installed_packages = 
+    initial_state.installed_packages = Vector::from(
+        Package::multiple_packages_from_json(&parse_json::read_json_file("./depy.json").unwrap())
+            .unwrap(),
+    );
 
     AppLauncher::with_window(main_window)
         .configure_env(gui::theme::setup_theme)

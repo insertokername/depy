@@ -49,23 +49,23 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 ctx.set_handled();
             }
             if let Some(pkg) = cmd.get(UPDATE_PACKAGE_INSTALL_STATUS) {
-                if !data.installed_packages.contains(pkg) {
+                if !data.installed_packages.iter().any(|cur_package|cur_package.equal(pkg)) {
                     data.installed_packages
                         .push_back(pkg.clone());
                     if let Some(changed_package) = data
                         .package_list
                         .iter_mut()
-                        .find(|cur_package| cur_package.package == *pkg)
+                        .find(|cur_package| cur_package.package.equal(pkg))
                     {
                         changed_package.is_installed = true;
                     }
                 } else {
                     data.installed_packages
-                        .retain(|cur_package| cur_package != pkg);
+                        .retain(|cur_package| !cur_package.equal(pkg));
                     if let Some(changed_package) = data
                         .package_list
                         .iter_mut()
-                        .find(|cur_package| cur_package.package == *pkg)
+                        .find(|cur_package| cur_package.package.equal(pkg))
                     {
                         changed_package.is_installed = false;
                     }
@@ -114,7 +114,7 @@ pub fn find_packages_async(
                 let wrapped_ok: Vector<InstalledPackageWrapper> = ok
                     .into_iter()
                     .map(|pkg: package::Package| InstalledPackageWrapper {
-                        is_installed: installed_packages.contains(&pkg),
+                        is_installed: installed_packages.iter().any(|cur_package| cur_package.equal(&pkg)),
                         package: pkg,
                     })
                     .collect();

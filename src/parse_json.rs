@@ -1,6 +1,6 @@
 use crate::env_var;
 
-#[derive(thiserror::Error, Debug, PartialEq)]
+#[derive(thiserror::Error, Debug)]
 pub enum ParseJsonError {
     #[error("Error: Invalid system arch!")]
     ArchError,
@@ -12,6 +12,8 @@ pub enum ParseJsonError {
     BinFormatError,
     #[error("Error: Couldn't find version attributes!")]
     MissingVersionError,
+    #[error("Error: Couldn't read manifest: {0}!\nGot error: {1}")]
+    ManifestReadError(String, #[source] Box<dyn std::error::Error>),
 }
 
 fn env_path_to_vec(value: &serde_json::Value) -> Result<Vec<String>, ParseJsonError> {
@@ -175,4 +177,21 @@ pub fn get_version(json_body: &serde_json::Value) -> Result<String, Box<dyn std:
         Some(out) => Ok(out.to_string()),
         None => Err(ParseJsonError::MissingVersionError.into()),
     }
+}
+
+pub fn read_json_file(filename: &str)->Result<serde_json::Value,Box<dyn std::error::Error>>{
+    let manifest_contents =
+        std::fs::read_to_string(filename).map_err(|e: std::io::Error| {
+            Box::new(ParseJsonError::ManifestReadError(filename.to_string(), Box::new(e)))
+        })?;
+
+    let manifest_json: serde_json::Value =
+        serde_json::from_str(&manifest_contents).map_err(|e| {
+            Box::new(ParseJsonError::ManifestReadError(
+                filename.to_string(),
+                Box::new(e),
+            ))
+        })?;
+    
+    Ok(manifest_json)
 }

@@ -1,7 +1,5 @@
 use druid::Data;
 
-
-
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum PackageError {
     #[error("Error: Invalid bucket_url format!")]
@@ -14,7 +12,7 @@ pub enum PackageError {
     VersionFormatError,
 }
 
-#[derive(Data, Clone, Debug, PartialEq)]
+#[derive(Data, Clone, Debug)]
 pub struct Package {
     pub bucket_url: Option<String>,
     pub bucket_name: String,
@@ -23,8 +21,20 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn single_package_from_json(package_json: &serde_json::Value) -> Result<Package, PackageError> {
-        // println!("{:#?}",package);
+    pub fn equal(
+        &self,
+        other: &Package,
+    ) -> bool {
+        self.bucket_name == other.bucket_name
+            // && self.bucket_url == other.bucket_url
+            && self.name == other.name
+    }
+}
+
+impl Package {
+    pub fn single_package_from_json(
+        package_json: &serde_json::Value
+    ) -> Result<Package, PackageError> {
         let package_obj = package_json
             .as_object()
             .expect("Invalid Package format, expected each package to be an package_object\n");
@@ -98,5 +108,20 @@ impl Package {
             name,
             version,
         })
+    }
+
+    pub fn multiple_packages_from_json(
+        json: &serde_json::Value
+    ) -> Result<Vec<Package>, Box<dyn std::error::Error>> {
+        if let Some(out) = json.as_array() {
+            let shit = out
+                .into_iter()
+                .map(|pkg| Package::single_package_from_json(pkg).map_err(|e| Box::new(e)))
+                .collect::<Result<Vec<Package>, Box<PackageError>>>();
+            Ok(shit?)
+        } else {
+            log::error!("Invalid install json, expected the installer to be an array of packages!");
+            return Err(Box::new(crate::installer::InstallerError::JsonFormatError));
+        }
     }
 }

@@ -16,27 +16,14 @@ use crate::{
 
 
 /// Installs all programs specified in a json file
-pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install(packages: Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
     if !crate::ARGS.no_init{
         bucket::clean_buckets()?;
         shell::init_depy()?;
     }
     let mut manifest_vec: Vec<Manifest> = vec![];
-    let packages = if let Some(out) = install_json.as_array() {
-        out
-    } else {
-        log::error!("Invalid install json, expected the installer to be an array of packages!");
-        return Err(Box::new(InstallerError::JsonFormatError));
-    };
+    
     for package in packages {
-        let package = match package::Package::single_package_from_json(package) {
-            Ok(out) => out,
-            Err(err) => {   
-                log::error!("Encountered error {err} while parsing packages!");
-                return Err(Box::new(err));
-            }
-        };
-
         let bucket_url = bucket::resolve_bucket_raw(&package.bucket_url.clone().unwrap());
         let app_url = bucket_url + "/" + &package.name + ".json";
 

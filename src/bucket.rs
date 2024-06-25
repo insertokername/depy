@@ -11,8 +11,6 @@ pub enum BucketError {
     BucketUrlError(PathBuf),
     #[error("Error: Couldn't determine the name of a file {0:?}!")]
     FileNameError(OsString),
-    #[error("Error: Couldn't read manifest: {0}!\nGot error: {1}")]
-    ManifestReadError(String, #[source] std::io::Error),
     #[error("Error: Couldn't parse manifest: {0}!\nGot error: {1}")]
     ManifestParseError(String, #[source] Box<dyn std::error::Error>),
     #[error("Error: Couldn't open the depy instalation folder: {0}!\nGot the following error: {1}\nMake sure that you have followed all depy install instructions and that the folder permisions are correct!")]
@@ -74,26 +72,6 @@ pub fn resolve_bucket_raw(bucket_name: &str) -> String {
     parse_github_to_raw(bucket_url)
 }
 
-fn open_json_file_helper(
-    dir_entry: &DirEntry,
-    filename: &str,
-) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-    let manifest_contents =
-        std::fs::read_to_string(dir_entry.path()).map_err(|e: std::io::Error| {
-            Box::new(BucketError::ManifestReadError(filename.to_string(), e))
-        })?;
-
-    let manifest_json: serde_json::Value =
-        serde_json::from_str(&manifest_contents).map_err(|e| {
-            Box::new(BucketError::ManifestParseError(
-                filename.to_string(),
-                Box::new(e),
-            ))
-        })?;
-
-    Ok(manifest_json)
-}
-
 fn query_single_bucket(
     query: &str,
     bucket: std::path::PathBuf,
@@ -113,20 +91,24 @@ fn query_single_bucket(
         .filter_map(|out| out.ok())
         .map(|out| {
             let filename = out.file_name();
-            let filename = filename
+            let mut str_filename = filename
                 .to_str()
                 .ok_or_else(|| Box::new(BucketError::FileNameError(filename.clone())))?;
 
+            str_filename=str_filename.strip_suffix(".json").unwrap_or(str_filename);
+
             let mut json_file = None;
 
-            if filename.ends_with(".json")
-                && (filename.contains(query)
-                    || (deep_search && {
-                        let temp = open_json_file_helper(&out, &filename)?;
-                        let result = parse_json::query_bin(&temp, query)?;
-                        json_file = Some(temp);
-                        result
-                    }))
+            if str_filename.contains(query)
+                || (deep_search && {
+                    let temp =
+                        crate::parse_json::read_json_file(out.path().to_str().ok_or_else(
+                            || Box::new(BucketError::FileNameError(filename.clone())),
+                        )?)?;
+                    let result = parse_json::query_bin(&temp, query)?;
+                    json_file = Some(temp);
+                    result
+                })
             {
                 Ok(Some(package::Package {
                     // this will never be used in the context of a package search since you have to query local buckets you don t need their url
@@ -141,12 +123,16 @@ fn query_single_bucket(
                             Box::new(BucketError::FileNameError(bucket.clone().into_os_string()))
                         })?
                         .to_string(),
-                    name: filename.to_string(),
+                    name: str_filename.to_string(),
                     version: parse_json::get_version(&match json_file {
                         Some(val) => val,
-                        None => open_json_file_helper(&out, &filename)?,
+                        None => {
+                            crate::parse_json::read_json_file(out.path().to_str().ok_or_else(
+                                || Box::new(BucketError::FileNameError(filename.clone())),
+                            )?)?
+                        }
                     })
-                    .map_err(|e| BucketError::ManifestParseError(filename.to_string(), e))?,
+                    .map_err(|e| BucketError::ManifestParseError(str_filename.to_string(), e))?,
                 }))
             } else {
                 Ok(None)

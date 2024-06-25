@@ -16,3 +16,5 @@ TODO:
 
   manage buckets button ( add remove update )
   
+  make buckets be plain strings
+  detect the bucket that contains manifest
