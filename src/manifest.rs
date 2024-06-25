@@ -1,4 +1,4 @@
-use crate::{env_var, parse_json_manifest};
+use crate::{env_var, parse_json};
 
 /// Struct version of a manifest.json
 #[derive(Debug, PartialEq)]
@@ -15,8 +15,8 @@ impl Manifest {
         name: String,
         version: String,
     ) -> Result<Manifest, Box<dyn std::error::Error>> {
-        let added_paths = parse_json_manifest::find_all_added_paths(manifest_value)?;
-        let env_vars = parse_json_manifest::get_env_variables(manifest_value)?;
+        let added_paths = parse_json::find_all_added_paths(manifest_value)?;
+        let env_vars = parse_json::get_env_variables(manifest_value)?;
         Ok(Manifest {
             version,
             name,

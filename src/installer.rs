@@ -29,7 +29,7 @@ pub fn install(install_json: serde_json::Value) -> Result<(), Box<dyn std::error
         return Err(Box::new(InstallerError::JsonFormatError));
     };
     for package in packages {
-        let package = match package::Package::from_value(package) {
+        let package = match package::Package::single_package_from_json(package) {
             Ok(out) => out,
             Err(err) => {   
                 log::error!("Encountered error {err} while parsing packages!");

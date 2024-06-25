@@ -9,7 +9,9 @@ fn main() {
         .title(WINDOW_TITLE)
         .window_size((600.0, 500.0));
 
-    let initial_state = gui::app_state::AppState::default();
+    let mut initial_state = gui::app_state::AppState::default();
+
+    // initial_state.installed_packages = 
 
     AppLauncher::with_window(main_window)
         .configure_env(gui::theme::setup_theme)

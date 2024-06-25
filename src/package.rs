@@ -23,7 +23,7 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn from_value(package_json: &serde_json::Value) -> Result<Package, PackageError> {
+    pub fn single_package_from_json(package_json: &serde_json::Value) -> Result<Package, PackageError> {
         // println!("{:#?}",package);
         let package_obj = package_json
             .as_object()

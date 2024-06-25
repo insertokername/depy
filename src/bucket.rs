@@ -1,6 +1,6 @@
 use std::{ffi::OsString, fs::DirEntry, path::PathBuf};
 
-use crate::{package, parse_json_manifest, shell};
+use crate::{package, parse_json, shell};
 use druid::im::Vector;
 
 #[derive(thiserror::Error, Debug)]
@@ -123,7 +123,7 @@ fn query_single_bucket(
                 && (filename.contains(query)
                     || (deep_search && {
                         let temp = open_json_file_helper(&out, &filename)?;
-                        let result = parse_json_manifest::query_bin(&temp, query)?;
+                        let result = parse_json::query_bin(&temp, query)?;
                         json_file = Some(temp);
                         result
                     }))
@@ -142,7 +142,7 @@ fn query_single_bucket(
                         })?
                         .to_string(),
                     name: filename.to_string(),
-                    version: parse_json_manifest::get_version(&match json_file {
+                    version: parse_json::get_version(&match json_file {
                         Some(val) => val,
                         None => open_json_file_helper(&out, &filename)?,
                     })

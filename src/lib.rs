@@ -5,7 +5,7 @@ pub mod env_var;
 pub mod installer;
 pub mod manifest;
 pub mod package;
-pub mod parse_json_manifest;
+pub mod parse_json;
 pub mod shell;
 
 #[macro_use]
