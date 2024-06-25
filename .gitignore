@@ -3,3 +3,4 @@ src/example.json
 .depyvenv
 .vscode
 depy.json
+count_lines.ps1

@@ -14,7 +14,7 @@ pub enum PackageError {
     VersionFormatError,
 }
 
-#[derive(Data, Clone, Debug)]
+#[derive(Data, Clone, Debug, PartialEq)]
 pub struct Package {
     pub bucket_url: Option<String>,
     pub bucket_name: String,

@@ -7,10 +7,13 @@ use druid::{
     Env, Event, EventCtx, Selector, Target, Widget,
 };
 
-use crate::gui::app_state::AppState;
+use crate::gui::app_state::{AppState, InstalledPackageWrapper};
 
-const FINISHED_SEARCH: Selector<Vector<package::Package>> = Selector::new("finished-search");
+const FINISHED_SEARCH: Selector<Vector<InstalledPackageWrapper>> = Selector::new("finished-search");
 const FAILED_SEARCH: Selector<String> = Selector::new("failed-search");
+
+pub const UPDATE_PACKAGE_INSTALL_STATUS: Selector<package::Package> =
+    Selector::new("update-package-install-status");
 
 pub struct AppController;
 
@@ -31,8 +34,6 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 data.is_searching = false;
                 ctx.set_handled();
             }
-        }
-        if let Event::Command(cmd) = event {
             if let Some(err_msg) = cmd.get(FAILED_SEARCH) {
                 data.package_list = vector![];
                 data.no_packages_found = false;
@@ -47,7 +48,33 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 }
                 ctx.set_handled();
             }
+            if let Some(pkg) = cmd.get(UPDATE_PACKAGE_INSTALL_STATUS) {
+                if !data.installed_packages.contains(pkg) {
+                    data.installed_packages
+                        .push_back(pkg.clone());
+                    if let Some(changed_package) = data
+                        .package_list
+                        .iter_mut()
+                        .find(|cur_package| cur_package.package == *pkg)
+                    {
+                        changed_package.is_installed = true;
+                    }
+                } else {
+                    data.installed_packages
+                        .retain(|cur_package| cur_package != pkg);
+                    if let Some(changed_package) = data
+                        .package_list
+                        .iter_mut()
+                        .find(|cur_package| cur_package.package == *pkg)
+                    {
+                        changed_package.is_installed = false;
+                    }
+                }
+
+                ctx.set_handled();
+            }
         }
+
         child.event(ctx, event, data, env);
     }
 }
@@ -61,6 +88,7 @@ pub fn find_packages_async(
 
     let sink = ctx.get_external_handle();
     let search_term = data.search_term.clone();
+    let installed_packages = data.installed_packages.clone();
     thread::spawn(move || {
         let result = catch_unwind(|| bucket::query_local_buckets(&search_term, deep_search));
         let flat_result = match result {
@@ -82,7 +110,16 @@ pub fn find_packages_async(
         };
 
         match flat_result {
-            Ok(ok) => sink.submit_command(FINISHED_SEARCH, ok, Target::Global),
+            Ok(ok) => {
+                let wrapped_ok: Vector<InstalledPackageWrapper> = ok
+                    .into_iter()
+                    .map(|pkg: package::Package| InstalledPackageWrapper {
+                        is_installed: installed_packages.contains(&pkg),
+                        package: pkg,
+                    })
+                    .collect();
+                sink.submit_command(FINISHED_SEARCH, wrapped_ok, Target::Global)
+            }
             Err(err) => sink.submit_command(FAILED_SEARCH, err.to_string(), Target::Global),
         }
     });

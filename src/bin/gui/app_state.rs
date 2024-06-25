@@ -2,12 +2,18 @@ use depy::package;
 use druid::{im::Vector, Data, Lens};
 
 #[derive(Clone, Data, Lens)]
+pub struct InstalledPackageWrapper{
+    pub is_installed: bool,
+    pub package: package::Package
+}
+
+#[derive(Clone, Data, Lens)]
 pub struct AppState {
     pub is_searching: bool,
     pub error_message: Option<String>,
     pub search_term: String,
     pub last_search_term: String,
-    pub package_list: Vector<package::Package>,
+    pub package_list: Vector<InstalledPackageWrapper>,
     pub no_packages_found: bool,
     pub installed_packages: Vector<package::Package>,
 }
