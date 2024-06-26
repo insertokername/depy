@@ -1,5 +1,3 @@
-// #![allow(dead_code)]
-
 use depy::{bucket, installer, parse_json, shell, ARGS};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

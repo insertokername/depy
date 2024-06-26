@@ -5,8 +5,6 @@ use druid::im::Vector;
 
 #[derive(thiserror::Error, Debug)]
 pub enum BucketError {
-    #[error("Error: Thread paniced while searching for app! Paniced on error {0}")]
-    ThreadSearchError(String),
     #[error("Error: Couldn't determine the url of bucket {0}!")]
     BucketUrlError(PathBuf),
     #[error("Error: Couldn't determine the name of a file {0:?}!")]

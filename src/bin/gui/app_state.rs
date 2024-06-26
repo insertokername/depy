@@ -1,6 +1,8 @@
 use depy::package;
 use druid::{im::Vector, Data, Lens};
 
+use super::logger::LogBuffer;
+
 #[derive(Clone, Data, Lens)]
 pub struct InstalledPackageWrapper{
     pub is_installed: bool,
@@ -16,6 +18,7 @@ pub struct AppState {
     pub package_list: Vector<InstalledPackageWrapper>,
     pub no_packages_found: bool,
     pub installed_packages: Vector<package::Package>,
+    pub console_buff : LogBuffer, 
 }
 
 impl AppState {
@@ -28,6 +31,7 @@ impl AppState {
             package_list: Vector::new(),
             no_packages_found: false,
             installed_packages: Vector::new(),
+            console_buff: LogBuffer::new(),
         }
     }
 }

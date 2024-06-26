@@ -1,4 +1,3 @@
-use depy::{installer, package};
 use druid::{
     theme::*,
     widget::{Button, Container, Either, Flex, Label, LensWrap, List, Scroll, TextBox},
@@ -89,17 +88,11 @@ pub fn root_widget() -> impl Widget<AppState> {
             Flex::column(),
         ));
 
-    let install_button =
-        Button::new("install selected packages").on_click(|_, data: &mut AppState, _| {
-            let package_vec = data
-                .installed_packages
-                .clone()
-                .into_iter()
-                .collect::<Vec<package::Package>>();
-
-            package::Package::save_packages_to_json(&package_vec).unwrap();
-
-        });
+    let install_button = Button::new("update .depyenv and install").on_click(
+        |ctx: &mut EventCtx, data: &mut AppState, _| {
+            controller::install_packages(data, ctx);
+        },
+    );
 
     let show_installed_packages_button = Button::new("Show installed packages").on_click(
         |ctx: &mut EventCtx, data: &mut AppState, _| {
@@ -118,13 +111,23 @@ pub fn root_widget() -> impl Widget<AppState> {
         },
     );
 
+    let logger_output = Scroll::new(
+        Label::dynamic(|data: &AppState, _| data.console_buff.get_contents())
+            .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
+    )
+    .vertical();
+
     Flex::column()
         .with_child(search_bar)
         .with_child(search_buttons)
         .with_child(no_packages_found_text)
         .with_child(install_button)
+        .with_child(Button::new("clear").on_click(|_, data: &mut AppState, _| {
+            data.console_buff.mutate_contents(|content| content.clear())
+        }))
         .with_child(show_installed_packages_button)
         .with_child(clean_error_button)
-        .with_flex_child(message_box, 1.0)
+        .with_flex_child(message_box, 0.8)
+        .with_flex_child(logger_output, 0.2)
         .controller(super::controller::AppController)
 }

@@ -1,5 +1,4 @@
 TODO:
-  faster operations by not making bucket adding necessary
   ability to specify manifest just from .json
   make operations faster by packing them into a single env set
   delete shortcuts
