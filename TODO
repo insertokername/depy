@@ -18,3 +18,5 @@ TODO:
   
   make buckets be plain strings
   detect the bucket that contains manifest
+  version select
+  actually be able to install apps and create .depyenv not only save .depy

@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let packages = depy::package::Package::multiple_packages_from_json(&json_value)?;
 
-    if let Err(err) = installer::install(packages) {
+    if let Err(err) = installer::install(&packages) {
         log::error!("Error occured while installing from depy file!");
         return Err(err);
     }

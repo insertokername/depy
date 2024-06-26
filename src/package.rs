@@ -1,4 +1,5 @@
 use druid::Data;
+use serde::Serialize;
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum PackageError {
@@ -12,7 +13,7 @@ pub enum PackageError {
     VersionFormatError,
 }
 
-#[derive(Data, Clone, Debug)]
+#[derive(Data, Clone, Debug, Serialize)]
 pub struct Package {
     pub bucket_url: Option<String>,
     pub bucket_name: String,
@@ -123,5 +124,13 @@ impl Package {
             log::error!("Invalid install json, expected the installer to be an array of packages!");
             return Err(Box::new(crate::installer::InstallerError::JsonFormatError));
         }
+    }
+
+    pub fn save_packages_to_json(
+        packages: &Vec<Package>
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let str_package = serde_json::to_string_pretty(packages).unwrap();
+        std::fs::write("./depy.json", str_package).unwrap();
+        Ok(())
     }
 }

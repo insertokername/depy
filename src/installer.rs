@@ -16,7 +16,7 @@ use crate::{
 
 
 /// Installs all programs specified in a json file
-pub fn install(packages: Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
     if !crate::ARGS.no_init{
         bucket::clean_buckets()?;
         shell::init_depy()?;
@@ -57,7 +57,7 @@ pub fn install(packages: Vec<package::Package>) -> Result<(), Box<dyn std::error
         };
         manifest_vec.push(parsed_manifest);
 
-        bucket::add_bucket(bucket::resolve_bucket_name(package.bucket_url.unwrap().as_str()), &package.bucket_name)?;
+        bucket::add_bucket(bucket::resolve_bucket_name(package.bucket_url.as_ref().unwrap().as_str()), &package.bucket_name)?;
     }
 
     for man in &manifest_vec {

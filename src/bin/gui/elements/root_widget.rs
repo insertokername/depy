@@ -1,10 +1,13 @@
+use depy::{installer, package};
 use druid::{
     theme::*,
     widget::{Button, Container, Either, Flex, Label, LensWrap, List, Scroll, TextBox},
-    Color, Widget, WidgetExt,
+    Color, Command, EventCtx, Target, Widget, WidgetExt,
 };
 
-use crate::gui::app_state::AppState;
+use crate::gui::app_state::{AppState, InstalledPackageWrapper};
+
+use super::controller;
 
 pub fn root_widget() -> impl Widget<AppState> {
     let search_box = TextBox::new()
@@ -86,10 +89,41 @@ pub fn root_widget() -> impl Widget<AppState> {
             Flex::column(),
         ));
 
+    let install_button =
+        Button::new("install selected packages").on_click(|_, data: &mut AppState, _| {
+            let package_vec = data
+                .installed_packages
+                .clone()
+                .into_iter()
+                .collect::<Vec<package::Package>>();
+
+            package::Package::save_packages_to_json(&package_vec).unwrap();
+
+        });
+
+    let show_installed_packages_button = Button::new("Show installed packages").on_click(
+        |ctx: &mut EventCtx, data: &mut AppState, _| {
+            ctx.submit_command(Command::new(
+                controller::FINISHED_SEARCH,
+                data.installed_packages
+                    .clone()
+                    .into_iter()
+                    .map(|cur_package| InstalledPackageWrapper {
+                        is_installed: true,
+                        package: cur_package,
+                    })
+                    .collect(),
+                Target::Global,
+            ))
+        },
+    );
+
     Flex::column()
         .with_child(search_bar)
         .with_child(search_buttons)
         .with_child(no_packages_found_text)
+        .with_child(install_button)
+        .with_child(show_installed_packages_button)
         .with_child(clean_error_button)
         .with_flex_child(message_box, 1.0)
         .controller(super::controller::AppController)

@@ -9,7 +9,7 @@ use druid::{
 
 use crate::gui::app_state::{AppState, InstalledPackageWrapper};
 
-const FINISHED_SEARCH: Selector<Vector<InstalledPackageWrapper>> = Selector::new("finished-search");
+pub const FINISHED_SEARCH: Selector<Vector<InstalledPackageWrapper>> = Selector::new("finished-search");
 const FAILED_SEARCH: Selector<String> = Selector::new("failed-search");
 
 pub const UPDATE_PACKAGE_INSTALL_STATUS: Selector<package::Package> =
