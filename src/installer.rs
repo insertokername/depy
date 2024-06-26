@@ -6,23 +6,14 @@ pub enum InstallerError {
     ResponseError,
 }
 
-use crate::{
-    bucket,
-    dir,
-    manifest::Manifest,
-    package,
-    shell,
-};
-
+use crate::{bucket, dir, manifest::Manifest, package, shell};
 
 /// Installs all programs specified in a json file
 pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
-    if !crate::ARGS.no_init{
-        bucket::clean_buckets()?;
-        shell::init_depy()?;
-    }
-    let mut manifest_vec: Vec<Manifest> = vec![];
+    shell::init_depy()?;
     
+    let mut manifest_vec: Vec<Manifest> = vec![];
+
     for package in packages {
         let bucket_url = bucket::resolve_bucket_raw(&package.bucket_url);
         let app_url = bucket_url + "/" + &package.name + ".json";
@@ -47,6 +38,7 @@ pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::erro
         let parsed_manifest = match Manifest::from_str(
             &actual_manifest,
             package.name.to_string(),
+            app_url.clone(),
             package.version.to_string(),
         ) {
             Ok(out) => out,
@@ -56,12 +48,10 @@ pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::erro
             }
         };
         manifest_vec.push(parsed_manifest);
-
-        bucket::add_bucket(bucket::resolve_bucket_name(&package.bucket_url), &package.bucket_name)?;
     }
 
     for man in &manifest_vec {
-        shell::install_cleanly(&man.name, &man.version)?;
+        shell::install_cleanly(&man)?;
     }
 
     dir::cleanup_shims()?;

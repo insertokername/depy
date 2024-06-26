@@ -18,3 +18,6 @@ TODO:
   
   version select
   actually be able to install apps and create .depyenv not only save .depy
+
+  fix the use statements to be consistesnt
+  make special garbage clean operation that is disconected from -d

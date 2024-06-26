@@ -63,22 +63,22 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(ShellError::UpdateError));
     }
 
+    dir::cleanup_shims()?;
     Ok(())
 }
 
 /// installs a program in the depy dir without adding it to path
 pub fn install_cleanly(
-    app_name: &str,
-    app_version: &str,
+    manifest: &manifest::Manifest
 ) -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Installing {app_name}@{app_version}\nPlease do not terminate process as to not risk PATH damages...");
+    log::info!("Installing {}@{}\nPlease do not terminate process as to not risk PATH damages...", manifest.name, manifest.version );
     let cmd_output = match run_cmd_in_depy_dir(
         &[
             "scoop config use_isolated_path DEPY_TEMP_VAL & ",
-            &if app_version == "latest" {
-                format!("scoop install {} & ", app_name)
+            &if manifest.version == "latest" {
+                format!("scoop install {} & ", manifest.url)
             } else {
-                format!("scoop install {}@{} & ", app_name, app_version)
+                format!("scoop install {}@{} & ", manifest.name, manifest.name)
             },
             "set DEPY_TEMP_VAL= & ",
             "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
@@ -88,22 +88,22 @@ pub fn install_cleanly(
     ) {
         Ok(out) => out,
         Err(err) => {
-            log::error!("Failed to install {app_name}, error:{err}");
+            log::error!("Failed to install {}, error:{err}",manifest.name);
             return Err(err);
         }
     };
 
     if !cmd_output.lines().any(|line| {
-        line.contains(&format!("{app_name}"))
+        line.contains(&format!("{}",manifest.name))
             && (line.contains("was installed successfully!")
                 || line.contains("is already installed"))
     }) {
         log::error!("Scoop errored out on:\n{cmd_output}");
-        log::error!("\n\nFailed to install {app_name}, scoop error above ^^^^^^^^^^^^^^^^\n\n");
+        log::error!("\n\nFailed to install {}, scoop error above ^^^^^^^^^^^^^^^^\n\n",manifest.name);
         return Err(Box::new(ShellError::InstallError));
     }
 
-    log::info!("{app_name} installed successfully!\n");
+    log::info!("{} installed successfully!\n",manifest.name);
     log::debug!("Command output:\n{cmd_output}");
     Ok(())
 }

@@ -7,10 +7,6 @@ pub struct Args {
     #[arg(short, long)]
     pub verbose: bool,
 
-    /// If set doesn't initialize depy before running other commands. Read more about this in README/
-    #[arg(short, long)]
-    pub no_init: bool,
-
     /// If set cleans up the folder %userprofile%/depy
     #[arg(short, long)]
     pub dir_cleanup: bool,
