@@ -24,7 +24,7 @@ pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::erro
     let mut manifest_vec: Vec<Manifest> = vec![];
     
     for package in packages {
-        let bucket_url = bucket::resolve_bucket_raw(&package.bucket_url.clone().unwrap());
+        let bucket_url = bucket::resolve_bucket_raw(&package.bucket_url);
         let app_url = bucket_url + "/" + &package.name + ".json";
 
         let response = match ureq::get(&app_url).call() {
@@ -57,7 +57,7 @@ pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::erro
         };
         manifest_vec.push(parsed_manifest);
 
-        bucket::add_bucket(bucket::resolve_bucket_name(package.bucket_url.as_ref().unwrap().as_str()), &package.bucket_name)?;
+        bucket::add_bucket(bucket::resolve_bucket_name(&package.bucket_url), &package.bucket_name)?;
     }
 
     for man in &manifest_vec {

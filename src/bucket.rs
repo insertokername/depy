@@ -1,4 +1,4 @@
-use std::{ffi::OsString, fs::DirEntry, path::PathBuf};
+use std::{ffi::OsString, path::PathBuf};
 
 use crate::{package, parse_json, shell};
 use druid::im::Vector;
@@ -87,6 +87,20 @@ fn query_single_bucket(
         }
     };
 
+    let output = std::process::Command::new("cmd")
+        .arg("/C")
+        .arg(format!("git -C {} config remote.origin.url",bucket.to_str().unwrap()))
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::error!("Command failed with error: {stderr}");
+        return Err(Box::new(BucketError::BucketUrlError(bucket.to_path_buf())));
+    }
+
+    let bucket_url = String::from_utf8(output.stdout)?.trim().to_string();
+
+
     Ok(manifests
         .filter_map(|out| out.ok())
         .map(|out| {
@@ -112,7 +126,7 @@ fn query_single_bucket(
             {
                 Ok(Some(package::Package {
                     // this will never be used in the context of a package search since you have to query local buckets you don t need their url
-                    bucket_url: None,
+                    bucket_url: bucket_url.clone(),
                     bucket_name: bucket
                         .file_name()
                         .ok_or_else(|| {
