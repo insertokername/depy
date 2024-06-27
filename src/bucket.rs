@@ -1,6 +1,6 @@
 use std::{ffi::OsString, path::PathBuf};
 
-use crate::{package, parse_json, shell};
+use crate::{dir, package, parse_json, shell};
 use druid::im::Vector;
 
 #[derive(thiserror::Error, Debug)]
@@ -48,6 +48,31 @@ pub fn add_bucket(
     Ok(())
 }
 
+fn find_bucket_url(bucket: &std::path::PathBuf)->Result<String, Box<dyn std::error::Error>>{
+        let output = std::process::Command::new("cmd")
+        .arg("/C")
+        .arg(format!("git -C {} config remote.origin.url",bucket.to_str().unwrap()))
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::error!("Command failed with error: {stderr}");
+        return Err(Box::new(BucketError::BucketUrlError(bucket.to_path_buf())));
+    }
+
+    Ok(String::from_utf8(output.stdout)?.trim().to_string())
+}
+
+/// Return (name, url)
+pub fn list_buckets()->Result<Vec<(String, String)>, Box<dyn std::error::Error>>{
+    let buckets = std::fs::read_dir(dir::get_depy_dir_location()+"\\apps").unwrap();
+
+    Ok(buckets.into_iter().map(|bucket|{
+            let bucket = bucket.unwrap();
+            (bucket.file_name().to_string_lossy().to_string(), find_bucket_url(&bucket.path()).unwrap())
+        }).collect())
+}
+
 pub fn resolve_bucket_name(bucket_name: &str) -> &str {
     match bucket_name {
         "main" => "https://github.com/ScoopInstaller/Main",
@@ -85,18 +110,7 @@ fn query_single_bucket(
         }
     };
 
-    let output = std::process::Command::new("cmd")
-        .arg("/C")
-        .arg(format!("git -C {} config remote.origin.url",bucket.to_str().unwrap()))
-        .output()?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        log::error!("Command failed with error: {stderr}");
-        return Err(Box::new(BucketError::BucketUrlError(bucket.to_path_buf())));
-    }
-
-    let bucket_url = String::from_utf8(output.stdout)?.trim().to_string();
+    let bucket_url = find_bucket_url(&bucket)?;
 
 
     Ok(manifests
