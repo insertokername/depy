@@ -16,8 +16,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    if ARGS.dir_cleanup {
+    if ARGS.delete {
         shell::uninstall_depy()?;
+        return Ok(());
+    }
+
+    if ARGS.garbage_clean{
+        shell::clean_depy_packages()?;
         return Ok(());
     }
 

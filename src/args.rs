@@ -7,9 +7,14 @@ pub struct Args {
     #[arg(short, long)]
     pub verbose: bool,
 
-    /// If set cleans up the folder %userprofile%/depy
+    /// If set delete depy and uninstalls all programs installed with depy
     #[arg(short, long)]
-    pub dir_cleanup: bool,
+    pub delete: bool,
+
+    /// If set uinstalls all apps installed by depy
+    #[arg(short, long)]
+    pub garbage_clean: bool,
+
 
     // /// If set cleans up the path, should be used after program was forcefully closed
     // #[arg(short, long)]

@@ -1,22 +1,22 @@
 TODO:
   ability to specify manifest just from .json
-  make operations faster by packing them into a single env set
   delete shortcuts
+    ca sa facem asta trb sa intram in folderu de shortcut-uri care o sa fie tot timpu iin %appdata%
   cleanup path operation
 
   pacakge search:
-    better error handling AGAIN
     show better results in cli -s -S
   
-  install system:
-    add button to add/remove package
-    update all button
-    show all added packages
-
   manage buckets button ( add remove update )
   
   version select
-  actually be able to install apps and create .depyenv not only save .depy
 
   fix the use statements to be consistesnt
-  make special garbage clean operation that is disconected from -d
+
+  update README
+
+  remove all .unwrap and make all errors use .map_err insted of the "if let"
+
+  documentation for new functions 
+
+  testing?

@@ -48,7 +48,7 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     dir::init_depy_dir();
 
     let cmd_output =
-        match run_cmd_in_depy_dir("scoop bucket add main & scoop update") {
+        match run_cmd_in_depy_dir("scoop bucket add main & scoop update & scoop config scoop_branch develop") {
             Ok(cmd_output) => cmd_output,
             Err(err) => {
                 log::error!(
@@ -78,7 +78,7 @@ pub fn install_cleanly(
             &if manifest.version == "latest" {
                 format!("scoop install {} & ", manifest.url)
             } else {
-                format!("scoop install {}@{} & ", manifest.name, manifest.name)
+                format!("scoop install {}@{} & ", manifest.name, manifest.version)
             },
             "set DEPY_TEMP_VAL= & ",
             "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
@@ -244,13 +244,8 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     Ok(())
 }
 
-pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Uninstalling depy apps...");
-
-    // get all programs from scoop list
-    // run uninstall for all of them, if one fails just rm -rf it
-
-    let cmd_output = match run_cmd_in_depy_dir(&format!("scoop list")) {
+pub fn clean_depy_packages()-> Result<(), Box<dyn std::error::Error>>{
+        let cmd_output = match run_cmd_in_depy_dir(&format!("scoop list")) {
         Ok(out) => out,
         Err(err) => {
             log::error!("List packages.\nGot error{err}");
@@ -320,8 +315,19 @@ pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    Ok(())
+}
+
+pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Uninstalling depy apps...");
+
+    // get all programs from scoop list
+    // run uninstall for all of them, if one fails just rm -rf it
+    clean_depy_packages()?;
+
     log::info!("Deleting depy directory...");
-    if let Err(err) = remove_dir_all::remove_dir_all(dir::get_depy_dir_location()) {
+
+    if let Err(err) = remove_dir_all::remove_dir_all(dir::get_depy_dir_location()+"\\..\\..\\depy") {
         log::error!("Couldn't delete the depy folder %userprofile%/depy\nError was:\n{err}");
         return Err(Box::new(err));
     }
