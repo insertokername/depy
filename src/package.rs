@@ -26,9 +26,9 @@ impl Package {
         &self,
         other: &Package,
     ) -> bool {
-        self.bucket_name == other.bucket_name
+        self.bucket_name.to_lowercase() == other.bucket_name.to_lowercase()
             // && self.bucket_url == other.bucket_url
-            && self.name == other.name
+            && self.name.to_lowercase() == other.name.to_lowercase()
     }
 }
 
