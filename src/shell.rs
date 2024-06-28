@@ -14,6 +14,8 @@ pub enum ShellError {
     CleanBucketError,
     #[error("Error: Couldn't add a bucket!")]
     AddBucketError,
+    #[error("Error: Couldn't remove a bucket!")]
+    RemoveBucketError,
     #[error("Error: Couldn't create a file or folder!")]
     CreateError,
     #[error("Error: Couldn't delete a file or folder!")]

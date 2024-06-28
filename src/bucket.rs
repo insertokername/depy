@@ -28,7 +28,7 @@ pub fn add_bucket(
     bucket_url: &str,
     bucket_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Adding bucket: {bucket_name}");
+    log::info!("Adding bucket: {bucket_name} ...");
     let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
         "scoop bucket add {bucket_name} {bucket_url}"
     )) {
@@ -44,6 +44,29 @@ pub fn add_bucket(
     {
         log::error!("Failed to add bucket name: {bucket_name} bucket url: {bucket_url},\nScoop output was:\n{cmd_output}");
         return Err(Box::new(shell::ShellError::AddBucketError));
+    };
+    Ok(())
+}
+
+/// Remove a bucket to the depy/scoop instalation
+pub fn remove_bucket(
+    bucket_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Removing bucket: {bucket_name} ...");
+    let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
+        "scoop bucket rm {bucket_name}"
+    )) {
+        Ok(out) => out,
+        Err(err) => {
+            log::error!("Failed to remove bucket name: {bucket_name}.\nGot error{err}");
+            return Err(Box::new(shell::ShellError::RemoveBucketError));
+        }
+    };
+
+    if !cmd_output.contains(&format!("The {bucket_name} bucket was removed successfully"))
+    {
+        log::error!("Failed to remove bucket name: {bucket_name}\nScoop output was:\n{cmd_output}");
+        return Err(Box::new(shell::ShellError::RemoveBucketError));
     };
     Ok(())
 }
@@ -65,7 +88,7 @@ fn find_bucket_url(bucket: &std::path::PathBuf)->Result<String, Box<dyn std::err
 
 /// Return (name, url)
 pub fn list_buckets()->Result<Vec<(String, String)>, Box<dyn std::error::Error>>{
-    let buckets = std::fs::read_dir(dir::get_depy_dir_location()+"\\apps").unwrap();
+    let buckets = std::fs::read_dir(dir::get_depy_dir_location()+"\\buckets").unwrap();
 
     Ok(buckets.into_iter().map(|bucket|{
             let bucket = bucket.unwrap();

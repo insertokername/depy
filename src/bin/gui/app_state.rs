@@ -19,6 +19,16 @@ pub struct AppState {
     pub no_packages_found: bool,
     pub installed_packages: Vector<package::Package>,
     pub console_buff : LogBuffer, 
+    pub cur_window: WindowSection,
+    pub add_bucket_name_field: String,
+    pub add_bucket_url_field: String,
+    pub bucket_list: Vector<(String, String)>,
+}
+
+#[derive(Data, PartialEq, Clone)]
+pub enum WindowSection{
+    PackageSearch,
+    BucketManagement
 }
 
 impl AppState {
@@ -32,6 +42,10 @@ impl AppState {
             no_packages_found: false,
             installed_packages: Vector::new(),
             console_buff: LogBuffer::new(),
+            cur_window: WindowSection::PackageSearch,
+            add_bucket_name_field: "".to_string(),
+            add_bucket_url_field: "".to_string(),
+            bucket_list: Vector::new(),
         }
     }
 }
