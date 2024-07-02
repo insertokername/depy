@@ -28,7 +28,7 @@ pub fn add_bucket(
     bucket_url: &str,
     bucket_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Adding bucket: {bucket_name} ...");
+    log::info!("Adding bucket: '{bucket_name}' ...");
     let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
         "scoop bucket add {bucket_name} {bucket_url}"
     )) {
@@ -52,7 +52,7 @@ pub fn add_bucket(
 pub fn remove_bucket(
     bucket_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Removing bucket: {bucket_name} ...");
+    log::info!("Removing bucket: '{bucket_name}' ...");
     let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
         "scoop bucket rm {bucket_name}"
     )) {

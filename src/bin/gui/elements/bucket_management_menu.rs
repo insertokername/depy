@@ -1,6 +1,6 @@
 use depy::bucket;
 use druid::{
-    widget::{Button, Flex, Label, List, Scroll, TextBox},
+    widget::{Button, Flex, Label, List, TextBox},
     Command, EventCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 

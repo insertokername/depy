@@ -25,10 +25,13 @@ pub const FINISHED_SEARCH: Selector<Vector<InstalledPackageWrapper>> =
 const FAILED_SEARCH: Selector<String> = Selector::new("failed-search");
 pub const UPDATE_PACKAGE_INSTALL_STATUS: Selector<package::Package> =
     Selector::new("update-package-install-status");
+
 pub const FINISHED_INSTALL: Selector<()> = Selector::new("finished-pacakges");
 pub const FAILED_INSTALL: Selector<String> = Selector::new("failed-pacakges");
+
 pub const ADD_BUCKET: Selector<()> = Selector::new("add-bucket");
-pub const REMOVE_BUCKET: Selector<()> = Selector::new("REMOVE-bucket");
+pub const REMOVE_BUCKET: Selector<()> = Selector::new("remove-bucket");
+pub const UPDATE_BUCKETS: Selector<()> = Selector::new("update-buckets");
 
 pub struct AppController;
 
@@ -105,14 +108,18 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 }
                 ctx.set_handled();
             }
-            if let Some(()) = cmd.get(ADD_BUCKET){
+            if let Some(()) = cmd.get(ADD_BUCKET) {
                 log::info!("Attempting to add bucket...");
-                add_bucket(data);
+                add_bucket(data, ctx);
                 ctx.set_handled();
             }
-            if let Some(()) = cmd.get(REMOVE_BUCKET){
+            if let Some(()) = cmd.get(REMOVE_BUCKET) {
                 log::info!("Attempting to remove bucket...");
-                remove_bucket(data);
+                remove_bucket(data, ctx);
+                ctx.set_handled();
+            }
+            if let Some(()) = cmd.get(UPDATE_BUCKETS) {
+                data.bucket_list = bucket::list_buckets().unwrap().into();
                 ctx.set_handled();
             }
         }
@@ -150,9 +157,7 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
                     "Unknown panic occurred".to_string()
                 };
                 println!("Errored out on error: {:?}", panic_message);
-                Err(
-                    ControllerError::InstallError(format!("{}", panic_message)).into(),
-                )
+                Err(ControllerError::InstallError(format!("{}", panic_message)).into())
             }
         };
 
@@ -165,10 +170,12 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
     ctx.set_handled();
 }
 
-pub fn remove_bucket(data: &mut AppState){
-    let bucket_name = data.add_bucket_name_field.clone(); 
+pub fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
+    let bucket_name = data.add_bucket_name_field.clone();
 
-    thread::spawn(move ||{
+    let sink = ctx.get_external_handle();
+
+    thread::spawn(move || {
         let result = catch_unwind(|| bucket::remove_bucket(&bucket_name));
         let flat_result = match result {
             Ok(ok) => ok,
@@ -181,23 +188,26 @@ pub fn remove_bucket(data: &mut AppState){
                     "Unknown panic occurred".to_string()
                 };
                 println!("Errored out on error: {:?}", panic_message);
-                Err(
-                    ControllerError::BucketRemoveError(format!("{}", panic_message)).into(),
-                )
+                Err(ControllerError::BucketRemoveError(format!("{}", panic_message)).into())
             }
         };
-        match flat_result{
-            Ok(_) => log::info!("Removing bucket!"),
-            Err(err)=> log::error!("Got an error while removing bucket! {err}"),
+        match flat_result {
+            Ok(_) => {
+                log::info!("Removing bucket!");
+                sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
+            }
+            Err(err) => log::error!("Got an error while removing bucket! {err}"),
         };
     });
 }
 
-pub fn add_bucket(data: &mut AppState){
-    let bucket_name = data.add_bucket_name_field.clone(); 
-    let bucket_url = data.add_bucket_url_field.clone(); 
+pub fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
+    let bucket_name = data.add_bucket_name_field.clone();
+    let bucket_url = data.add_bucket_url_field.clone();
 
-    thread::spawn(move ||{
+    let sink = ctx.get_external_handle();
+
+    thread::spawn(move || {
         let result = catch_unwind(|| bucket::add_bucket(&bucket_url, &bucket_name));
         let flat_result = match result {
             Ok(ok) => ok,
@@ -210,14 +220,15 @@ pub fn add_bucket(data: &mut AppState){
                     "Unknown panic occurred".to_string()
                 };
                 println!("Errored out on error: {:?}", panic_message);
-                Err(
-                    ControllerError::BucketAddError(format!("{}", panic_message)).into(),
-                )
+                Err(ControllerError::BucketAddError(format!("{}", panic_message)).into())
             }
         };
-        match flat_result{
-            Ok(_) => log::info!("Added bucket!"),
-            Err(err)=> log::error!("Got an error while adding bucket! {err}"),
+        match flat_result {
+            Ok(_) => {
+                log::info!("Added bucket!");
+                sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
+            }
+            Err(err) => log::error!("Got an error while adding bucket! {err}"),
         };
     });
 }
@@ -241,9 +252,7 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
                     "Unknown panic occurred".to_string()
                 };
                 println!("Errored out on error: {:?}", panic_message);
-                Err(
-                    ControllerError::ThreadSearchError(format!("{}", panic_message)).into(),
-                )
+                Err(ControllerError::ThreadSearchError(format!("{}", panic_message)).into())
             }
         };
 
