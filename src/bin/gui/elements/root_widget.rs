@@ -1,6 +1,5 @@
 use druid::{
-    widget::{self, Button, Flex, Label, Scroll},
-    EventCtx, Target, UnitPoint, Widget, WidgetExt,
+    widget::{self, Button, Flex, Label, Scroll}, EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
@@ -44,5 +43,7 @@ pub fn root_widget() -> impl Widget<AppState> {
             0.8,
         )
         .with_flex_child(logger_output, 0.2)
+        .on_added(|_,ctx: &mut LifeCycleCtx, _ , _|ctx.submit_command(controller::INITIALIZE.to(Target::Global)))
+        .disabled_if(|data: &AppState,_| data.initializing_depy)
         .controller(super::controller::AppController)
 }

@@ -1,7 +1,6 @@
 use depy::{package::Package, parse_json, shell};
 use druid::{im::Vector, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
-use gui::elements::controller::init_depy_gui;
 
 mod gui;
 
@@ -12,7 +11,7 @@ fn main() {
         .title(WINDOW_TITLE)
         .window_size((600.0, 500.0));
 
-    let mut initial_state = gui::app_state::AppState::default();
+    let initial_state = gui::app_state::AppState::default();
 
     let pipe = Target::Pipe(Box::new(initial_state.console_buff.clone_arc()));
 
@@ -26,13 +25,6 @@ fn main() {
         .format_timestamp(None)
         .target(pipe)
         .init();
-
-    initial_state.installed_packages = Vector::from(
-        Package::multiple_packages_from_json(&parse_json::read_json_file("./depy.json").unwrap())
-            .unwrap(),
-    );
-
-    init_depy_gui();
 
     AppLauncher::with_window(main_window)
         .configure_env(gui::theme::setup_theme)

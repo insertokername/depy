@@ -12,6 +12,7 @@ pub struct InstalledPackageWrapper{
 #[derive(Clone, Data, Lens)]
 pub struct AppState {
     pub is_searching: bool,
+    pub initializing_depy: bool,
     pub error_message: Option<String>,
     pub search_term: String,
     pub last_search_term: String,
@@ -35,6 +36,7 @@ impl AppState {
     pub fn default() -> AppState {
         AppState {
             is_searching: false,
+            initializing_depy: false,
             error_message: None,
             search_term: "".to_string(),
             last_search_term: "".to_string(),

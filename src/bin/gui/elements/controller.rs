@@ -3,7 +3,7 @@ use std::{panic::catch_unwind, string, thread};
 use depy::{
     bucket, installer,
     package::{self, Package},
-    shell,
+    parse_json, shell,
 };
 use druid::{im::Vector, widget::Controller, Env, Event, EventCtx, Selector, Target, Widget};
 
@@ -17,6 +17,8 @@ pub enum ControllerError {
     ThreadSearchError(String),
     #[error("Error: Thread paniced while installing packages! Paniced on error {0}")]
     InstallError(String),
+    #[error("Error: Thread paniced while initializing depy! Paniced on error {0}")]
+    InitDepyError(String),
 }
 
 use crate::gui::app_state::{AppState, InstalledPackageWrapper};
@@ -33,6 +35,9 @@ pub const FAILED_INSTALL: Selector<String> = Selector::new("failed-pacakges");
 pub const ADD_BUCKET: Selector<()> = Selector::new("add-bucket");
 pub const REMOVE_BUCKET: Selector<()> = Selector::new("remove-bucket");
 pub const UPDATE_BUCKETS: Selector<()> = Selector::new("update-buckets");
+
+pub const INITIALIZE: Selector<()> = Selector::new("initialize");
+pub const FINISHED_INITIALIZE: Selector<()> = Selector::new("finished_initialize");
 
 pub struct AppController;
 
@@ -123,6 +128,21 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 data.bucket_list = bucket::list_buckets().unwrap().into();
                 ctx.set_handled();
             }
+            if let Some(()) = cmd.get(INITIALIZE) {
+                data.installed_packages = Vector::from(
+                    Package::multiple_packages_from_json(
+                        &parse_json::read_json_file("./depy.json").unwrap(),
+                    )
+                    .unwrap(),
+                );
+                data.initializing_depy = true;
+                init_depy_gui(ctx);
+                ctx.set_handled();
+            }
+            if let Some(()) = cmd.get(FINISHED_INITIALIZE) {
+                data.initializing_depy = false;
+                ctx.set_handled();
+            }
         }
 
         child.event(ctx, event, data, env);
@@ -132,10 +152,10 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
 /// Intended to be used to flatten the output of `catch_unwind`.
 /// The wrapped result will be proccesd and flattened down to a single Result.
 /// Uses the closure to proccess the unwind error into a flat error, the argument of the closure being the error message of the unwind error transformed to a string
-fn flatten_err<T, Flat_err>(
-    unflat_result: Result<Result<T, Flat_err>, Box<dyn std::any::Any + Send>>,
-    process_unwind_error: impl Fn(String) -> Flat_err,
-) -> Result<T, Flat_err> {
+fn flatten_err<T, FlatErr>(
+    unflat_result: Result<Result<T, FlatErr>, Box<dyn std::any::Any + Send>>,
+    process_unwind_error: impl Fn(String) -> FlatErr,
+) -> Result<T, FlatErr> {
     match unflat_result {
         Ok(ok) => ok,
         Err(err) => {
@@ -182,7 +202,7 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
     ctx.set_handled();
 }
 
-pub fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
+fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
     let bucket_name = data.add_bucket_name_field.clone();
 
     let sink = ctx.get_external_handle();
@@ -205,7 +225,7 @@ pub fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
     });
 }
 
-pub fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
+fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
     let bucket_name = data.add_bucket_name_field.clone();
     let bucket_url = data.add_bucket_url_field.clone();
 
@@ -262,18 +282,19 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
     });
 }
 
-pub fn init_depy_gui() {
+fn init_depy_gui(ctx: &mut EventCtx) {
+    let sink = ctx.get_external_handle();
     thread::spawn(move || {
         let result = catch_unwind(|| shell::init_depy());
         let flat_result = flatten_err(result, |panic_message| {
-            Box::new(ControllerError::ThreadSearchError(format!(
-                "{}",
-                panic_message
-            )))
+            Box::new(ControllerError::InitDepyError(format!("{}", panic_message)))
         });
 
         match flat_result {
-            Ok(()) => log::info!("init successful!"),
+            Ok(()) => {
+                log::info!("init successful!");
+                sink.submit_command(FINISHED_INITIALIZE, (), Target::Global);
+            }
             Err(err) => log::error!("Couldn't initialize depy! Got an error: {}", err),
         };
     });
