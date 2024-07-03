@@ -1,8 +1,9 @@
-use std::{panic::catch_unwind, thread};
+use std::{panic::catch_unwind, string, thread};
 
 use depy::{
     bucket, installer,
     package::{self, Package},
+    shell,
 };
 use druid::{im::Vector, widget::Controller, Env, Event, EventCtx, Selector, Target, Widget};
 
@@ -128,6 +129,29 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
     }
 }
 
+/// Intended to be used to flatten the output of `catch_unwind`.
+/// The wrapped result will be proccesd and flattened down to a single Result.
+/// Uses the closure to proccess the unwind error into a flat error, the argument of the closure being the error message of the unwind error transformed to a string
+fn flatten_err<T, Flat_err>(
+    unflat_result: Result<Result<T, Flat_err>, Box<dyn std::any::Any + Send>>,
+    process_unwind_error: impl Fn(String) -> Flat_err,
+) -> Result<T, Flat_err> {
+    match unflat_result {
+        Ok(ok) => ok,
+        Err(err) => {
+            let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
+                message.to_string()
+            } else if let Some(message) = err.downcast_ref::<String>() {
+                message.clone()
+            } else {
+                "Unknown panic occurred".to_string()
+            };
+            println!("Errored out on error: {:?}", panic_message);
+            Err(process_unwind_error(panic_message))
+        }
+    }
+}
+
 pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
     let package_vec = data
         .installed_packages
@@ -145,21 +169,9 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
         let result = catch_unwind(|| installer::install(&package_vec));
-
-        let flat_result = match result {
-            Ok(ok) => ok,
-            Err(err) => {
-                let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
-                    message.to_string()
-                } else if let Some(message) = err.downcast_ref::<String>() {
-                    message.clone()
-                } else {
-                    "Unknown panic occurred".to_string()
-                };
-                println!("Errored out on error: {:?}", panic_message);
-                Err(ControllerError::InstallError(format!("{}", panic_message)).into())
-            }
-        };
+        let flat_result = flatten_err(result, |panic_message| {
+            return Box::new(ControllerError::InstallError(format!("{}", panic_message)));
+        });
 
         match flat_result {
             Ok(()) => sink.submit_command(FINISHED_INSTALL, (), Target::Global),
@@ -177,20 +189,12 @@ pub fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
 
     thread::spawn(move || {
         let result = catch_unwind(|| bucket::remove_bucket(&bucket_name));
-        let flat_result = match result {
-            Ok(ok) => ok,
-            Err(err) => {
-                let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
-                    message.to_string()
-                } else if let Some(message) = err.downcast_ref::<String>() {
-                    message.clone()
-                } else {
-                    "Unknown panic occurred".to_string()
-                };
-                println!("Errored out on error: {:?}", panic_message);
-                Err(ControllerError::BucketRemoveError(format!("{}", panic_message)).into())
-            }
-        };
+        let flat_result = flatten_err(result, |panic_message| {
+            Box::new(ControllerError::BucketRemoveError(format!(
+                "{}",
+                panic_message
+            )))
+        });
         match flat_result {
             Ok(_) => {
                 log::info!("Removing bucket!");
@@ -209,20 +213,12 @@ pub fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
 
     thread::spawn(move || {
         let result = catch_unwind(|| bucket::add_bucket(&bucket_url, &bucket_name));
-        let flat_result = match result {
-            Ok(ok) => ok,
-            Err(err) => {
-                let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
-                    message.to_string()
-                } else if let Some(message) = err.downcast_ref::<String>() {
-                    message.clone()
-                } else {
-                    "Unknown panic occurred".to_string()
-                };
-                println!("Errored out on error: {:?}", panic_message);
-                Err(ControllerError::BucketAddError(format!("{}", panic_message)).into())
-            }
-        };
+        let flat_result = flatten_err(result, |panic_message| {
+            Box::new(ControllerError::BucketAddError(format!(
+                "{}",
+                panic_message
+            )))
+        });
         match flat_result {
             Ok(_) => {
                 log::info!("Added bucket!");
@@ -241,20 +237,12 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
     let installed_packages = data.installed_packages.clone();
     thread::spawn(move || {
         let result = catch_unwind(|| bucket::query_local_buckets(&search_term, deep_search));
-        let flat_result = match result {
-            Ok(ok) => ok,
-            Err(err) => {
-                let panic_message = if let Some(message) = err.downcast_ref::<&str>() {
-                    message.to_string()
-                } else if let Some(message) = err.downcast_ref::<String>() {
-                    message.clone()
-                } else {
-                    "Unknown panic occurred".to_string()
-                };
-                println!("Errored out on error: {:?}", panic_message);
-                Err(ControllerError::ThreadSearchError(format!("{}", panic_message)).into())
-            }
-        };
+        let flat_result = flatten_err(result, |panic_message| {
+            Box::new(ControllerError::ThreadSearchError(format!(
+                "{}",
+                panic_message
+            )))
+        });
 
         match flat_result {
             Ok(ok) => {
@@ -271,5 +259,22 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
             }
             Err(err) => sink.submit_command(FAILED_SEARCH, err.to_string(), Target::Global),
         }
+    });
+}
+
+pub fn init_depy_gui() {
+    thread::spawn(move || {
+        let result = catch_unwind(|| shell::init_depy());
+        let flat_result = flatten_err(result, |panic_message| {
+            Box::new(ControllerError::ThreadSearchError(format!(
+                "{}",
+                panic_message
+            )))
+        });
+
+        match flat_result {
+            Ok(()) => log::info!("init successful!"),
+            Err(err) => log::error!("Couldn't initialize depy! Got an error: {}", err),
+        };
     });
 }

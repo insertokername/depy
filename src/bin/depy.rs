@@ -36,6 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(())
     }
 
+    shell::init_depy()?;
+
     let json_value = parse_json::read_json_file("./depy.json")?;
 
     let packages = depy::package::Package::multiple_packages_from_json(&json_value)?;

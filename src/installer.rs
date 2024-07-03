@@ -10,8 +10,6 @@ use crate::{bucket, dir, manifest::Manifest, package, shell};
 
 /// Installs all programs specified in a json file
 pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
-    shell::init_depy()?;
-    
     let mut manifest_vec: Vec<Manifest> = vec![];
 
     for package in packages {

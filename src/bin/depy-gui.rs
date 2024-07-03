@@ -1,6 +1,7 @@
-use depy::{package::Package, parse_json};
+use depy::{package::Package, parse_json, shell};
 use druid::{im::Vector, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
+use gui::elements::controller::init_depy_gui;
 
 mod gui;
 
@@ -30,6 +31,8 @@ fn main() {
         Package::multiple_packages_from_json(&parse_json::read_json_file("./depy.json").unwrap())
             .unwrap(),
     );
+
+    init_depy_gui();
 
     AppLauncher::with_window(main_window)
         .configure_env(gui::theme::setup_theme)
