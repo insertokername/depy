@@ -184,7 +184,7 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
 
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
-        let result = catch_unwind(|| installer::install(&package_vec));
+        let result = catch_unwind(|| installer::install(package_vec));
         let flat_result = flatten_err(result, |panic_message| {
             return Box::new(ControllerError::InstallError(format!("{}", panic_message)));
         });
