@@ -3,9 +3,16 @@ use druid::{im::Vector, Data, Lens};
 
 use super::logger::LogBuffer;
 
+#[derive(Data, Clone, PartialEq)]
+pub enum InstalledPackageState{
+    AddPackage,
+    SelectVersion,
+    Remove,
+}
+
 #[derive(Clone, Data, Lens)]
 pub struct InstalledPackageWrapper{
-    pub is_installed: bool,
+    pub visual_package_state: InstalledPackageState,
     pub package: package::Package
 }
 

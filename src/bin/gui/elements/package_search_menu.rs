@@ -4,7 +4,7 @@ use druid::{
     Color, Command, EventCtx, Target, Widget, WidgetExt,
 };
 
-use crate::gui::app_state::{AppState, InstalledPackageWrapper};
+use crate::gui::app_state::{AppState, InstalledPackageState, InstalledPackageWrapper};
 
 use super::controller;
 
@@ -98,7 +98,7 @@ pub fn make_package_search() -> impl Widget<AppState> {
                     .clone()
                     .into_iter()
                     .map(|cur_package| InstalledPackageWrapper {
-                        is_installed: true,
+                        visual_package_state: InstalledPackageState::Remove,
                         package: cur_package,
                     })
                     .collect(),

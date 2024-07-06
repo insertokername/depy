@@ -1,5 +1,5 @@
 use druid::{
-    widget::{self, Button, Flex, Label, Scroll}, EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt
+    widget::{Button, Flex, Label, Scroll, ViewSwitcher}, EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
@@ -31,7 +31,7 @@ pub fn root_widget() -> impl Widget<AppState> {
                 .align_vertical(UnitPoint::TOP),
         )
         .with_flex_child(
-            widget::ViewSwitcher::new(
+            ViewSwitcher::new(
                 |data: &AppState, _| data.cur_window.clone(),
                 |section: &WindowSection, _, _| match section {
                     WindowSection::PackageSearch => {

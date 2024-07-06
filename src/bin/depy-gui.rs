@@ -1,3 +1,4 @@
+// #![windows_subsystem = "windows"]
 use depy::{package::Package, parse_json, shell};
 use druid::{im::Vector, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;

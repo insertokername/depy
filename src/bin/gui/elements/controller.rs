@@ -1,4 +1,4 @@
-use std::{panic::catch_unwind, string, thread};
+use std::{panic::catch_unwind, thread};
 
 use depy::{
     bucket, installer,
@@ -21,13 +21,14 @@ pub enum ControllerError {
     InitDepyError(String),
 }
 
-use crate::gui::app_state::{AppState, InstalledPackageWrapper};
+use crate::gui::app_state::{AppState, InstalledPackageState, InstalledPackageWrapper};
 
 pub const FINISHED_SEARCH: Selector<Vector<InstalledPackageWrapper>> =
     Selector::new("finished-search");
 const FAILED_SEARCH: Selector<String> = Selector::new("failed-search");
-pub const UPDATE_PACKAGE_INSTALL_STATUS: Selector<package::Package> =
-    Selector::new("update-package-install-status");
+
+pub const ADD_PACKAGE: Selector<package::Package> = Selector::new("add-package");
+pub const REMOVE_PACKAGE: Selector<package::Package> = Selector::new("remove-package");
 
 pub const FINISHED_INSTALL: Selector<()> = Selector::new("finished-pacakges");
 pub const FAILED_INSTALL: Selector<String> = Selector::new("failed-pacakges");
@@ -72,33 +73,29 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 }
                 ctx.set_handled();
             }
-            if let Some(pkg) = cmd.get(UPDATE_PACKAGE_INSTALL_STATUS) {
-                if !data
-                    .installed_packages
-                    .iter()
-                    .any(|cur_package| cur_package.equal(pkg))
-                {
+            if let Some(pkg) = cmd.get(ADD_PACKAGE) {
+                if !data.installed_packages.contains(pkg) {
                     data.installed_packages.push_back(pkg.clone());
                     if let Some(changed_package) = data
                         .package_list
                         .iter_mut()
-                        .find(|cur_package| cur_package.package.equal(pkg))
+                        .find(|cur_package| cur_package.package.eq(pkg))
                     {
-                        changed_package.is_installed = true;
-                    }
-                } else {
-                    data.installed_packages
-                        .retain(|cur_package| !cur_package.equal(pkg));
-                    if let Some(changed_package) = data
-                        .package_list
-                        .iter_mut()
-                        .find(|cur_package| cur_package.package.equal(pkg))
-                    {
-                        changed_package.is_installed = false;
+                        changed_package.visual_package_state = InstalledPackageState::Remove;
                     }
                 }
-
-                ctx.set_handled();
+            }
+            if let Some(pkg) = cmd.get(REMOVE_PACKAGE) {
+                data.installed_packages
+                    .retain(|cur_package| cur_package.ne(pkg));
+                if let Some(changed_package) = data
+                    .package_list
+                    .iter_mut()
+                    .find(|cur_package| cur_package.package.eq(pkg))
+                {
+                    changed_package.visual_package_state = InstalledPackageState::AddPackage;
+                }
+                ctx.set_handled()
             }
             if let Some(()) = cmd.get(FINISHED_INSTALL) {
                 ctx.set_handled();
@@ -129,12 +126,16 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 ctx.set_handled();
             }
             if let Some(()) = cmd.get(INITIALIZE) {
-                data.installed_packages = Vector::from(
-                    Package::multiple_packages_from_json(
-                        &parse_json::read_json_file("./depy.json").unwrap(),
-                    )
-                    .unwrap(),
-                );
+                if std::path::Path::new("./depy.json").exists() {
+                    data.installed_packages = Vector::from(
+                        Package::multiple_packages_from_json(
+                            &parse_json::read_json_file("./depy.json").unwrap(),
+                        )
+                        .unwrap(),
+                    );
+                } else {
+                    log::info!("Couldn't find a depy.json file in the current directory!\n Depy will create a new file when installing the packages!")
+                }
                 data.initializing_depy = true;
                 init_depy_gui(ctx);
                 ctx.set_handled();
@@ -177,11 +178,6 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
         .installed_packages
         .clone()
         .into_iter()
-        .map(|pkg| {
-            let mut out = Package::from(pkg);
-            out.version = "latest".to_string();
-            out
-        })
         .collect::<Vec<package::Package>>();
 
     package::Package::save_packages_to_json(&package_vec).unwrap();
@@ -218,7 +214,7 @@ fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
         match flat_result {
             Ok(_) => {
                 log::info!("Removing bucket!");
-                sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
+                let _ =sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
             }
             Err(err) => log::error!("Got an error while removing bucket! {err}"),
         };
@@ -242,7 +238,7 @@ fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
         match flat_result {
             Ok(_) => {
                 log::info!("Added bucket!");
-                sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
+                let _ = sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
             }
             Err(err) => log::error!("Got an error while adding bucket! {err}"),
         };
@@ -269,9 +265,11 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
                 let wrapped_ok: Vector<InstalledPackageWrapper> = ok
                     .into_iter()
                     .map(|pkg: package::Package| InstalledPackageWrapper {
-                        is_installed: installed_packages
-                            .iter()
-                            .any(|cur_package| cur_package.equal(&pkg)),
+                        visual_package_state: if installed_packages.contains(&pkg) {
+                            InstalledPackageState::Remove
+                        } else {
+                            InstalledPackageState::AddPackage
+                        },
                         package: pkg,
                     })
                     .collect();
@@ -293,7 +291,7 @@ fn init_depy_gui(ctx: &mut EventCtx) {
         match flat_result {
             Ok(()) => {
                 log::info!("init successful!");
-                sink.submit_command(FINISHED_INITIALIZE, (), Target::Global);
+                let _ = sink.submit_command(FINISHED_INITIALIZE, (), Target::Global);
             }
             Err(err) => log::error!("Couldn't initialize depy! Got an error: {}", err),
         };

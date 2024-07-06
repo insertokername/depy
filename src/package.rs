@@ -1,4 +1,4 @@
-use druid::Data;
+use druid::{Data, Lens};
 use serde::Serialize;
 
 #[derive(thiserror::Error, Debug, PartialEq)]
@@ -13,7 +13,7 @@ pub enum PackageError {
     VersionFormatError,
 }
 
-#[derive(Data, Clone, Debug, Serialize)]
+#[derive(Data, Clone, Debug, Serialize, Lens)]
 pub struct Package {
     pub bucket_url: String,
     pub bucket_name: String,
@@ -21,20 +21,29 @@ pub struct Package {
     pub version: String,
 }
 
-impl Package {
-    pub fn equal(
-        &self,
-        other: &Package,
-    ) -> bool {
+impl PartialEq for Package {
+    fn eq(&self, other: &Package) -> bool {
         self.bucket_name.to_lowercase() == other.bucket_name.to_lowercase()
-            // && self.bucket_url == other.bucket_url
             && self.name.to_lowercase() == other.name.to_lowercase()
     }
 }
 
+impl Eq for Package {}
+
+impl PartialOrd for Package {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.name.cmp(&other.name))
+    }
+}
+
+impl Ord for Package {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.name.cmp(&other.name)
+    }
+}
 impl Package {
     pub fn single_package_from_json(
-        package_json: &serde_json::Value
+        package_json: &serde_json::Value,
     ) -> Result<Package, PackageError> {
         let package_obj = package_json
             .as_object()
@@ -112,14 +121,14 @@ impl Package {
     }
 
     pub fn multiple_packages_from_json(
-        json: &serde_json::Value
+        json: &serde_json::Value,
     ) -> Result<Vec<Package>, Box<dyn std::error::Error>> {
         if let Some(out) = json.as_array() {
-            let shit = out
+            let temp = out
                 .into_iter()
                 .map(|pkg| Package::single_package_from_json(pkg).map_err(|e| Box::new(e)))
                 .collect::<Result<Vec<Package>, Box<PackageError>>>();
-            Ok(shit?)
+            Ok(temp?)
         } else {
             log::error!("Invalid install json, expected the installer to be an array of packages!");
             return Err(Box::new(crate::installer::InstallerError::JsonFormatError));
@@ -127,7 +136,7 @@ impl Package {
     }
 
     pub fn save_packages_to_json(
-        packages: &Vec<Package>
+        packages: &Vec<Package>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let str_package = serde_json::to_string_pretty(packages).unwrap();
         std::fs::write("./depy.json", str_package).unwrap();

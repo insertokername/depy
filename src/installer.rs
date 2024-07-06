@@ -6,10 +6,27 @@ pub enum InstallerError {
     ResponseError,
 }
 
-use crate::{bucket, dir, manifest::Manifest, package, shell};
+
+use crate::{
+    bucket, dir,
+    manifest::Manifest,
+    package::{self},
+    shell,
+};
 
 /// Installs all programs specified in a json file
-pub fn install(packages: &Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install(mut packages: Vec<package::Package>) -> Result<(), Box<dyn std::error::Error>> {
+    // Check if the package vector contains two of the same package
+    packages.sort();
+    packages.dedup_by(|first, second| {
+        if (*first).eq(second) {
+            log::info!("Only installing first of the duplicate packages:\nfirst: {:#?}\nsecond: {:#?}", first, second);
+            true
+        } else {
+            false
+        }
+    });
+
     let mut manifest_vec: Vec<Manifest> = vec![];
 
     for package in packages {
