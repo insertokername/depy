@@ -20,7 +20,7 @@ pub struct Args {
     #[arg(short, long)]
     pub path_clean: bool,
 
-    /// If set initializes depy under %userprofile%/depy and exists
+    /// If set initializes depy under %userprofile%/depy
     #[arg(short='i', long)]
     pub only_initialize: bool,
 
