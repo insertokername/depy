@@ -24,10 +24,7 @@ pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Adds a bucket to the depy/scoop instalation
-pub fn add_bucket(
-    bucket_url: &str,
-    bucket_name: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn add_bucket(bucket_url: &str, bucket_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Adding bucket: '{bucket_name}' ...");
     let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
         "scoop bucket add {bucket_name} {bucket_url}"
@@ -49,13 +46,9 @@ pub fn add_bucket(
 }
 
 /// Remove a bucket to the depy/scoop instalation
-pub fn remove_bucket(
-    bucket_name: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn remove_bucket(bucket_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Removing bucket: '{bucket_name}' ...");
-    let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
-        "scoop bucket rm {bucket_name}"
-    )) {
+    let cmd_output = match shell::run_cmd_in_depy_dir(&format!("scoop bucket rm {bucket_name}")) {
         Ok(out) => out,
         Err(err) => {
             log::error!("Failed to remove bucket name: {bucket_name}.\nGot error{err}");
@@ -63,18 +56,22 @@ pub fn remove_bucket(
         }
     };
 
-    if !cmd_output.contains(&format!("The {bucket_name} bucket was removed successfully"))
-    {
+    if !cmd_output.contains(&format!(
+        "The {bucket_name} bucket was removed successfully"
+    )) {
         log::error!("Failed to remove bucket name: {bucket_name}\nScoop output was:\n{cmd_output}");
         return Err(Box::new(shell::ShellError::RemoveBucketError));
     };
     Ok(())
 }
 
-fn find_bucket_url(bucket: &std::path::PathBuf)->Result<String, Box<dyn std::error::Error>>{
-        let output = std::process::Command::new("cmd")
+fn find_bucket_url(bucket: &std::path::PathBuf) -> Result<String, Box<dyn std::error::Error>> {
+    let output = std::process::Command::new("cmd")
         .arg("/C")
-        .arg(format!("git -C {} config remote.origin.url",bucket.to_str().unwrap()))
+        .arg(format!(
+            "git -C {} config remote.origin.url",
+            bucket.to_str().unwrap()
+        ))
         .output()?;
 
     if !output.status.success() {
@@ -87,13 +84,19 @@ fn find_bucket_url(bucket: &std::path::PathBuf)->Result<String, Box<dyn std::err
 }
 
 /// Return (name, url)
-pub fn list_buckets()->Result<Vec<(String, String)>, Box<dyn std::error::Error>>{
-    let buckets = std::fs::read_dir(dir::get_depy_dir_location()+"\\buckets").unwrap();
+pub fn list_buckets() -> Result<Vec<(String, String)>, Box<dyn std::error::Error>> {
+    let buckets = std::fs::read_dir(dir::get_depy_dir_location() + "\\buckets").unwrap();
 
-    Ok(buckets.into_iter().map(|bucket|{
+    Ok(buckets
+        .into_iter()
+        .map(|bucket| {
             let bucket = bucket.unwrap();
-            (bucket.file_name().to_string_lossy().to_string(), find_bucket_url(&bucket.path()).unwrap())
-        }).collect())
+            (
+                bucket.file_name().to_string_lossy().to_string(),
+                find_bucket_url(&bucket.path()).unwrap(),
+            )
+        })
+        .collect())
 }
 
 pub fn resolve_bucket_name(bucket_name: &str) -> &str {
@@ -135,7 +138,6 @@ fn query_single_bucket(
 
     let bucket_url = find_bucket_url(&bucket)?;
 
-
     Ok(manifests
         .filter_map(|out| out.ok())
         .map(|out| {
@@ -144,7 +146,7 @@ fn query_single_bucket(
                 .to_str()
                 .ok_or_else(|| Box::new(BucketError::FileNameError(filename.clone())))?;
 
-            str_filename=str_filename.strip_suffix(".json").unwrap_or(str_filename);
+            str_filename = str_filename.strip_suffix(".json").unwrap_or(str_filename);
 
             let mut json_file = None;
 
@@ -153,9 +155,16 @@ fn query_single_bucket(
                     let temp =
                         crate::parse_json::read_json_file(out.path().to_str().ok_or_else(
                             || Box::new(BucketError::FileNameError(filename.clone())),
-                        )?)?;
-                    let result = parse_json::query_bin(&temp, query)?;
-                    json_file = Some(temp);
+                        )?);
+                    let ok_temp = match temp {
+                        Ok(ok) => ok,
+                        Err(err) => {
+                            log::debug!("Found an improperly formated package named: {str_filename}\n Format error was: {}, ", err.to_string());
+                            return Ok(None);
+                        }
+                    };
+                    let result = parse_json::query_bin(&ok_temp, query)?;
+                    json_file = Some(ok_temp);
                     result
                 })
             {
