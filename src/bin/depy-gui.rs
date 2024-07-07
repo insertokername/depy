@@ -1,11 +1,12 @@
-use druid::{AppLauncher, LocalizedString, WindowDesc};
+#![windows_subsystem = "windows"]
+
+use druid::{widget::Label, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
+use gui::app_state::AppState;
 
 mod gui;
 
 const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString::new("Depy");
-
-// #![windows_subsystem = "windows"]
 
 fn main() {
     let main_window = WindowDesc::new(gui::elements::root_widget::root_widget())
@@ -31,4 +32,18 @@ fn main() {
         .configure_env(gui::theme::setup_theme)
         .launch(initial_state)
         .expect("Failed to launch application");
+
+    if let Err(err) = depy::shell::cleanup_path() {
+        let temp = AppState::default();
+
+        AppLauncher::with_window(
+            WindowDesc::new(Label::<AppState>::new(format!(
+                "Got an error while cleaning up after depy!\nError was: {}",
+                err.to_string()
+            )))
+            .title("Error!"),
+        )
+        .launch(temp)
+        .unwrap();
+    }
 }
