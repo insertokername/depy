@@ -26,6 +26,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
+    if ARGS.path_clean{
+        shell::cleanup_path()?;
+        return Ok(());
+    }
+
     if ARGS.search.is_some() || ARGS.deep_search.is_some(){
         let query = ARGS.search.clone().unwrap_or_else(||ARGS.deep_search.clone().unwrap());
         println!("query: '{query}'");

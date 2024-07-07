@@ -49,16 +49,17 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Initializing depy directory...");
     dir::init_depy_dir();
 
-    let cmd_output =
-        match run_cmd_in_depy_dir("scoop bucket add main & scoop update & scoop config scoop_branch develop") {
-            Ok(cmd_output) => cmd_output,
-            Err(err) => {
-                log::error!(
+    let cmd_output = match run_cmd_in_depy_dir(
+        "scoop bucket add main & scoop update & scoop config scoop_branch develop",
+    ) {
+        Ok(cmd_output) => cmd_output,
+        Err(err) => {
+            log::error!(
                 "Failed to run update command! Please make sure scoop is installed on your system!"
             );
-                return Err(err);
-            }
-        };
+            return Err(err);
+        }
+    };
 
     if !cmd_output.contains("Scoop was updated successfully!") {
         log::error!("Couldn't update scoop! Command output: {cmd_output}");
@@ -70,10 +71,12 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// installs a program in the depy dir without adding it to path
-pub fn install_cleanly(
-    manifest: &manifest::Manifest
-) -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Installing {}@{}\nPlease do not terminate process as to not risk PATH damages...", manifest.name, manifest.version );
+pub fn install_cleanly(manifest: &manifest::Manifest) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!(
+        "Installing {}@{}\nPlease do not terminate process as to not risk PATH damages...",
+        manifest.name,
+        manifest.version
+    );
     let cmd_output = match run_cmd_in_depy_dir(
         &[
             "scoop config use_isolated_path DEPY_TEMP_VAL & ",
@@ -90,22 +93,25 @@ pub fn install_cleanly(
     ) {
         Ok(out) => out,
         Err(err) => {
-            log::error!("Failed to install {}, error:{err}",manifest.name);
+            log::error!("Failed to install {}, error:{err}", manifest.name);
             return Err(err);
         }
     };
 
     if !cmd_output.lines().any(|line| {
-        line.contains(&format!("{}",manifest.name))
+        line.contains(&format!("{}", manifest.name))
             && (line.contains("was installed successfully!")
                 || line.contains("is already installed"))
     }) {
         log::error!("Scoop errored out on:\n{cmd_output}");
-        log::error!("\n\nFailed to install {}, scoop error above ^^^^^^^^^^^^^^^^\n\n",manifest.name);
+        log::error!(
+            "\n\nFailed to install {}, scoop error above ^^^^^^^^^^^^^^^^\n\n",
+            manifest.name
+        );
         return Err(Box::new(ShellError::InstallError));
     }
 
-    log::info!("{} installed successfully!\n",manifest.name);
+    log::info!("{} installed successfully!\n", manifest.name);
     log::debug!("Command output:\n{cmd_output}");
     Ok(())
 }
@@ -210,11 +216,7 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
 
     let path_local_shims = std::path::Path::new(local_shims);
     paths += &[
-        path_local_shims
-            .absolutize()
-            .unwrap()
-            .to_str()
-            .unwrap(),
+        path_local_shims.absolutize().unwrap().to_str().unwrap(),
         ";",
     ]
     .concat();
@@ -246,8 +248,8 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     Ok(())
 }
 
-pub fn clean_depy_packages()-> Result<(), Box<dyn std::error::Error>>{
-        let cmd_output = match run_cmd_in_depy_dir(&format!("scoop list")) {
+pub fn clean_depy_packages() -> Result<(), Box<dyn std::error::Error>> {
+    let cmd_output = match run_cmd_in_depy_dir(&format!("scoop list")) {
         Ok(out) => out,
         Err(err) => {
             log::error!("List packages.\nGot error{err}");
@@ -329,7 +331,9 @@ pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
 
     log::info!("Deleting depy directory...");
 
-    if let Err(err) = remove_dir_all::remove_dir_all(dir::get_depy_dir_location()+"\\..\\..\\depy") {
+    if let Err(err) =
+        remove_dir_all::remove_dir_all(dir::get_depy_dir_location() + "\\..\\..\\depy")
+    {
         log::error!("Couldn't delete the depy folder %userprofile%/depy\nError was:\n{err}");
         return Err(Box::new(err));
     }
@@ -338,5 +342,35 @@ pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
         "Deletion successfull! If you want to fully remove depy run:\nscoop uninstall depy\n"
     );
 
+    Ok(())
+}
+
+pub fn cleanup_path() -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Cleaning up any path aditions made by depy!");
+    let cmd_output = match run_cmd_in_depy_dir(
+        &[
+            "scoop config use_isolated_path DEPY_TEMP_VAL & ",
+            "set DEPY_TEMP_VAL= & ",
+            "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
+            "scoop config rm use_isolated_path",
+        ]
+        .concat(),
+    ) {
+        Ok(out) => out,
+        Err(err) => {
+            log::error!("Failed to cleanup paths, error:{err}");
+            return Err(err);
+        }
+    };
+    if !(cmd_output.contains("SUCCESS: Specified value was saved")
+        && cmd_output.contains("'use_isolated_path' has been removed"))
+    {
+        log::error!("Scoop errored out on:\n{cmd_output}");
+        log::error!("\n\nFailed to cleanup paths, output above ^^^^^^^^^^^^^^^^\n\n");
+        return Err(Box::new(ShellError::InstallError));
+    }
+
+    log::info!("Cleaned up successfuly!");
+    log::debug!("Command output:\n{cmd_output}");
     Ok(())
 }

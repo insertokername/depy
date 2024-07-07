@@ -16,9 +16,9 @@ pub struct Args {
     pub garbage_clean: bool,
 
 
-    // /// If set cleans up the path, should be used after program was forcefully closed
-    // #[arg(short, long)]
-    // pub path_cleanup: bool,
+    /// If set cleans up the path, should be used after program was forcefully closed
+    #[arg(short, long)]
+    pub path_clean: bool,
 
     /// If set initializes depy under %userprofile%/depy and exists
     #[arg(short='i', long)]

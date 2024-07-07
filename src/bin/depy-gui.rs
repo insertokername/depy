@@ -1,11 +1,11 @@
-// #![windows_subsystem = "windows"]
-use depy::{package::Package, parse_json, shell};
-use druid::{im::Vector, AppLauncher, LocalizedString, WindowDesc};
+use druid::{AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
 
 mod gui;
 
 const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString::new("Depy");
+
+// #![windows_subsystem = "windows"]
 
 fn main() {
     let main_window = WindowDesc::new(gui::elements::root_widget::root_widget())
