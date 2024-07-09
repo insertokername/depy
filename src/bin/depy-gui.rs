@@ -11,7 +11,7 @@ const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString:
 fn main() {
     let main_window = WindowDesc::new(gui::elements::root_widget::root_widget())
         .title(WINDOW_TITLE)
-        .window_size((600.0, 500.0));
+        .window_size((600.0, 700.0));
 
     let initial_state = gui::app_state::AppState::default();
 

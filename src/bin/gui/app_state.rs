@@ -20,6 +20,8 @@ pub struct InstalledPackageWrapper{
 pub struct AppState {
     pub is_searching: bool,
     pub initializing_depy: bool,
+    pub is_cleaning_depy: bool,
+    pub is_uninstalled: bool,
     pub error_message: Option<String>,
     pub search_term: String,
     pub last_search_term: String,
@@ -36,7 +38,8 @@ pub struct AppState {
 #[derive(Data, PartialEq, Clone)]
 pub enum WindowSection{
     PackageSearch,
-    BucketManagement
+    BucketManagement,
+    GarbageClean,
 }
 
 impl AppState {
@@ -44,6 +47,8 @@ impl AppState {
         AppState {
             is_searching: false,
             initializing_depy: false,
+            is_cleaning_depy: false,
+            is_uninstalled: false,
             error_message: None,
             search_term: "".to_string(),
             last_search_term: "".to_string(),

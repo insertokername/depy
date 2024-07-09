@@ -19,6 +19,10 @@ pub enum ControllerError {
     InstallError(String),
     #[error("Error: Thread paniced while initializing depy! Paniced on error {0}")]
     InitDepyError(String),
+    #[error("Error: Thread paniced while cleaning up depy packages! Paniced on error {0}")]
+    CleanupError(String),
+    #[error("Error: Thread paniced while uninstalling depy! Paniced on error {0}")]
+    UninstallErrror(String),
 }
 
 use crate::gui::app_state::{AppState, InstalledPackageState, InstalledPackageWrapper};
@@ -27,18 +31,22 @@ pub const FINISHED_SEARCH: Selector<Vector<InstalledPackageWrapper>> =
     Selector::new("finished-search");
 const FAILED_SEARCH: Selector<String> = Selector::new("failed-search");
 
-pub const ADD_PACKAGE: Selector<package::Package> = Selector::new("add-package");
-pub const REMOVE_PACKAGE: Selector<package::Package> = Selector::new("remove-package");
+pub(super) const ADD_PACKAGE: Selector<package::Package> = Selector::new("add-package");
+pub(super) const REMOVE_PACKAGE: Selector<package::Package> = Selector::new("remove-package");
 
-pub const FINISHED_INSTALL: Selector<()> = Selector::new("finished-pacakges");
-pub const FAILED_INSTALL: Selector<String> = Selector::new("failed-pacakges");
+const FINISHED_INSTALL: Selector<()> = Selector::new("finished-pacakges");
+const FAILED_INSTALL: Selector<String> = Selector::new("failed-pacakges");
 
-pub const ADD_BUCKET: Selector<()> = Selector::new("add-bucket");
-pub const REMOVE_BUCKET: Selector<()> = Selector::new("remove-bucket");
-pub const UPDATE_BUCKETS: Selector<()> = Selector::new("update-buckets");
+pub(super) const ADD_BUCKET: Selector<()> = Selector::new("add-bucket");
+pub(super) const REMOVE_BUCKET: Selector<()> = Selector::new("remove-bucket");
+pub(super) const UPDATE_BUCKETS: Selector<()> = Selector::new("update-buckets");
 
-pub const INITIALIZE: Selector<()> = Selector::new("initialize");
-pub const FINISHED_INITIALIZE: Selector<()> = Selector::new("finished_initialize");
+pub(super) const INITIALIZE: Selector<()> = Selector::new("initialize");
+pub(super) const FINISHED_INITIALIZE: Selector<()> = Selector::new("finished_initialize");
+
+pub(super) const CLEAN_DEPY: Selector<()> = Selector::new("clean-depy");
+pub(super) const UNINSTALL_DEPY: Selector<()> = Selector::new("uninstall-depy");
+pub(super) const FINISHED_CLEAN: Selector<()> = Selector::new("finished-clean");
 
 pub struct AppController;
 
@@ -57,7 +65,6 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 data.no_packages_found = list.is_empty();
                 data.last_search_term = data.search_term.clone();
                 data.is_searching = false;
-                ctx.set_handled();
             }
             if let Some(err_msg) = cmd.get(FAILED_SEARCH) {
                 data.package_list = druid::im::vector![];
@@ -71,7 +78,6 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                     }
                     None => data.error_message = Some(err_msg.to_string()),
                 }
-                ctx.set_handled();
             }
             if let Some(pkg) = cmd.get(ADD_PACKAGE) {
                 if !data.installed_packages.contains(pkg) {
@@ -97,9 +103,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 }
                 ctx.set_handled()
             }
-            if let Some(()) = cmd.get(FINISHED_INSTALL) {
-                ctx.set_handled();
-            }
+            if let Some(()) = cmd.get(FINISHED_INSTALL) {}
             if let Some(err_msg) = cmd.get(FAILED_INSTALL) {
                 match &mut data.error_message {
                     Some(some) => {
@@ -109,21 +113,17 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                     }
                     None => data.error_message = Some(err_msg.to_string()),
                 }
-                ctx.set_handled();
             }
             if let Some(()) = cmd.get(ADD_BUCKET) {
                 log::info!("Attempting to add bucket...");
                 add_bucket(data, ctx);
-                ctx.set_handled();
             }
             if let Some(()) = cmd.get(REMOVE_BUCKET) {
                 log::info!("Attempting to remove bucket...");
                 remove_bucket(data, ctx);
-                ctx.set_handled();
             }
             if let Some(()) = cmd.get(UPDATE_BUCKETS) {
                 data.bucket_list = bucket::list_buckets().unwrap().into();
-                ctx.set_handled();
             }
             if let Some(()) = cmd.get(INITIALIZE) {
                 if std::path::Path::new("./depy.json").exists() {
@@ -137,12 +137,21 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                     log::info!("Couldn't find a depy.json file in the current directory!\n Depy will create a new file when installing the packages!")
                 }
                 data.initializing_depy = true;
-                init_depy_gui(ctx);
-                ctx.set_handled();
+                init_depy_async(ctx);
             }
             if let Some(()) = cmd.get(FINISHED_INITIALIZE) {
                 data.initializing_depy = false;
-                ctx.set_handled();
+            }
+            if let Some(()) = cmd.get(CLEAN_DEPY) {
+                data.is_cleaning_depy = true;
+                clean_depy_async(ctx);
+            }
+            if let Some(()) = cmd.get(UNINSTALL_DEPY) {
+                data.is_uninstalled = true;
+                uninstall_depy_async();
+            }
+            if let Some(()) = cmd.get(FINISHED_CLEAN) {
+                data.is_cleaning_depy = false;
             }
         }
 
@@ -194,8 +203,6 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
             Err(err) => sink.submit_command(FAILED_INSTALL, err.to_string(), Target::Global),
         }
     });
-
-    ctx.set_handled();
 }
 
 fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
@@ -214,7 +221,7 @@ fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
         match flat_result {
             Ok(_) => {
                 log::info!("Removing bucket!");
-                let _ =sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
+                let _ = sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
             }
             Err(err) => log::error!("Got an error while removing bucket! {err}"),
         };
@@ -254,10 +261,7 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
     thread::spawn(move || {
         let result = catch_unwind(|| bucket::query_local_buckets(&search_term, deep_search));
         let flat_result = flatten_err(result, |panic_message| {
-            Box::new(ControllerError::ThreadSearchError(format!(
-                "{}",
-                panic_message
-            )))
+            Box::new(ControllerError::ThreadSearchError(panic_message))
         });
 
         match flat_result {
@@ -280,12 +284,12 @@ pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search:
     });
 }
 
-fn init_depy_gui(ctx: &mut EventCtx) {
+fn init_depy_async(ctx: &mut EventCtx) {
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
         let result = catch_unwind(|| shell::init_depy());
         let flat_result = flatten_err(result, |panic_message| {
-            Box::new(ControllerError::InitDepyError(format!("{}", panic_message)))
+            Box::new(ControllerError::InitDepyError(panic_message))
         });
 
         match flat_result {
@@ -295,5 +299,42 @@ fn init_depy_gui(ctx: &mut EventCtx) {
             }
             Err(err) => log::error!("Couldn't initialize depy! Got an error: {}", err),
         };
+    });
+}
+
+fn uninstall_depy_async() {
+    thread::spawn(move || {
+        let result = catch_unwind(|| shell::uninstall_depy());
+        let flat_result = flatten_err(result, |panic_message| {
+            Box::new(ControllerError::UninstallErrror(panic_message))
+        });
+        match flat_result {
+            Ok(()) => {
+                log::info!("Uninstall successfull!");
+                log::info!(
+                    "Please uninstall depy from scoop as well, by using 'scoop uninstall depy'!"
+                );
+                log::info!("If you restart depy now, it will reinitialize automatically so it will leave junk in %userprofile%/depy!");
+            }
+            Err(err) => log::error!("Couldn't uninstall Depy! Got an error: {}", err),
+        }
+    });
+}
+
+fn clean_depy_async(ctx: &mut EventCtx) {
+    let sink = ctx.get_external_handle();
+    thread::spawn(move || {
+        let result = catch_unwind(|| shell::clean_depy_packages());
+        let flat_result = flatten_err(result, |panic_message| {
+            Box::new(ControllerError::CleanupError(panic_message))
+        });
+
+        match flat_result {
+            Ok(()) => {
+                log::info!("Cleanup successfull!");
+            }
+            Err(err) => log::error!("Couldn't cleanup Depy! Got an error: {}", err),
+        }
+        let _ = sink.submit_command(FINISHED_CLEAN, (), Target::Global);
     });
 }

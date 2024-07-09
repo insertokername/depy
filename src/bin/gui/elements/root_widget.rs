@@ -1,10 +1,14 @@
 use druid::{
-    widget::{Button, Flex, Label, Scroll, ViewSwitcher}, EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt
+    widget::{Button, Flex, Label, Scroll, ViewSwitcher},
+    EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
 
-use super::{bucket_management_menu::make_bucket_management, controller, package_search_menu};
+use super::{
+    bucket_management_menu::make_bucket_management, controller,
+    garbage_clean_menu::make_garbage_clean, package_search_menu,
+};
 
 pub fn root_widget() -> impl Widget<AppState> {
     let logger_output = Scroll::new(
@@ -27,6 +31,11 @@ pub fn root_widget() -> impl Widget<AppState> {
                         data.cur_window = WindowSection::BucketManagement;
                     },
                 ))
+                .with_child(
+                    Button::new("garbage clean").on_click(|_, data: &mut AppState, _| {
+                        data.cur_window = WindowSection::GarbageClean;
+                    }),
+                )
                 .align_horizontal(UnitPoint::LEFT)
                 .align_vertical(UnitPoint::TOP),
         )
@@ -37,13 +46,23 @@ pub fn root_widget() -> impl Widget<AppState> {
                     WindowSection::PackageSearch => {
                         Box::new(package_search_menu::make_package_search())
                     }
-                    WindowSection::BucketManagement => Box::new(make_bucket_management()),
+                    WindowSection::BucketManagement => {
+                        Box::new(make_bucket_management().align_vertical(UnitPoint::CENTER))
+                    }
+                    WindowSection::GarbageClean => {
+                        Box::new(make_garbage_clean().align_vertical(UnitPoint::CENTER))
+                    }
                 },
             ),
             0.8,
         )
-        .with_flex_child(logger_output, 0.2)
-        .on_added(|_,ctx: &mut LifeCycleCtx, _ , _|ctx.submit_command(controller::INITIALIZE.to(Target::Global)))
-        .disabled_if(|data: &AppState,_| data.initializing_depy)
+        .with_flex_spacer(0.05)
+        .with_flex_child(logger_output, 0.25)
+        .on_added(|_, ctx: &mut LifeCycleCtx, _, _| {
+            ctx.submit_command(controller::INITIALIZE.to(Target::Global))
+        })
+        .disabled_if(|data: &AppState, _| {
+            data.initializing_depy | data.is_cleaning_depy | data.is_uninstalled
+        })
         .controller(super::controller::AppController)
 }
