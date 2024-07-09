@@ -63,8 +63,11 @@ pub fn package_widget() -> impl Widget<InstalledPackageWrapper> {
                                 ))
                             },
                         )),
-                    InstalledPackageState::Remove => {
-                        Flex::column().with_child(Button::new("remove").on_click(
+                    InstalledPackageState::Remove => Flex::row()
+                        .with_child(Label::dynamic(|data: &InstalledPackageWrapper, _| {
+                            format!("@{}", data.package.version)
+                        }))
+                        .with_child(Button::new("remove").on_click(
                             |ctx: &mut EventCtx, data: &mut InstalledPackageWrapper, _| {
                                 ctx.submit_command(Command::new(
                                     controller::REMOVE_PACKAGE,
@@ -72,8 +75,7 @@ pub fn package_widget() -> impl Widget<InstalledPackageWrapper> {
                                     Target::Global,
                                 ))
                             },
-                        ))
-                    }
+                        )),
                 })
             },
         ))
