@@ -70,6 +70,55 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn generate_install_script(indentifier: &str, version: &str) -> String {
+    [
+        "scoop config use_isolated_path DEPY_TEMP_VAL & ",
+        &if version == "latest" {
+            format!("scoop install {} & ", indentifier)
+        } else {
+            format!("scoop install {}@{} & ", indentifier, version)
+        },
+        "set DEPY_TEMP_VAL= & ",
+        "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
+        "scoop config rm use_isolated_path",
+    ]
+    .concat()
+}
+
+fn attempt_install(
+    name: &str,
+    indentifier: &str,
+    version: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let install_script = generate_install_script(indentifier, version);
+    log::debug!("installing package{name}, running command:\n{install_script}",);
+
+    let cmd_result = run_cmd_in_depy_dir(&install_script);
+
+    let cmd_output = match cmd_result {
+        Ok(out) => out,
+        Err(err) => {
+            log::error!("Failed to install {}, error:{err}", name);
+            return Err(err);
+        }
+    };
+
+    if !cmd_output.lines().any(|line| {
+        line.contains(&format!("{}", name))
+            && (line.contains("was installed successfully!")
+                || line.contains("is already installed"))
+    }) {
+        log::error!("Scoop errored out on:\n{cmd_output}");
+        log::error!(
+            "\n\nFailed to install {}, scoop error above ^^^^^^^^^^^^^^^^\n\n",
+            name
+        );
+        return Err(Box::new(ShellError::InstallError));
+    }
+
+    Ok(cmd_output)
+}
+
 /// installs a program in the depy dir without adding it to path
 pub fn install_cleanly(manifest: &manifest::Manifest) -> Result<(), Box<dyn std::error::Error>> {
     log::info!(
@@ -77,42 +126,19 @@ pub fn install_cleanly(manifest: &manifest::Manifest) -> Result<(), Box<dyn std:
         manifest.name,
         manifest.version
     );
-    let cmd_output = match run_cmd_in_depy_dir(
-        &[
-            "scoop config use_isolated_path DEPY_TEMP_VAL & ",
-            &if manifest.version == "latest" {
-                format!("scoop install {} & ", manifest.url)
-            } else {
-                format!("scoop install {}@{} & ", manifest.name, manifest.version)
-            },
-            "set DEPY_TEMP_VAL= & ",
-            "setx DEPY_TEMP_VAL %DEPY_TEMP_VAL% & ",
-            "scoop config rm use_isolated_path",
-        ]
-        .concat(),
-    ) {
-        Ok(out) => out,
-        Err(err) => {
-            log::error!("Failed to install {}, error:{err}", manifest.name);
-            return Err(err);
+
+    let command_output = match attempt_install(&manifest.name, &manifest.url, &manifest.version) {
+        Ok(ok) => ok,
+        Err(first_err) => {
+            log::debug!(
+                "Couldn't install from urlZ!!\nGot error: {first_err}\nAttempting local install..."
+            );
+            attempt_install(&manifest.name, &manifest.name, &manifest.version).map_err(|err| {log::error!("Couldn't install app from local!\nGot error {err}\n\nWhile trying to install package from url got error:{first_err}"); ShellError::InstallError})?
         }
     };
 
-    if !cmd_output.lines().any(|line| {
-        line.contains(&format!("{}", manifest.name))
-            && (line.contains("was installed successfully!")
-                || line.contains("is already installed"))
-    }) {
-        log::error!("Scoop errored out on:\n{cmd_output}");
-        log::error!(
-            "\n\nFailed to install {}, scoop error above ^^^^^^^^^^^^^^^^\n\n",
-            manifest.name
-        );
-        return Err(Box::new(ShellError::InstallError));
-    }
-
     log::info!("{} installed successfully!\n", manifest.name);
-    log::debug!("Command output:\n{cmd_output}");
+    log::debug!("Command output:\n{command_output}");
     Ok(())
 }
 
@@ -249,26 +275,20 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
 }
 
 pub fn clean_depy_packages() -> Result<(), Box<dyn std::error::Error>> {
-    let cmd_output = match run_cmd_in_depy_dir(&format!("scoop list")) {
-        Ok(out) => out,
-        Err(err) => {
-            log::error!("List packages.\nGot error{err}");
-            return Err(Box::new(ShellError::AddBucketError));
-        }
-    };
-
-    let mut iter = cmd_output.lines().peekable();
-
-    while let Some(line) = iter.next() {
-        if line.starts_with("Name") {
-            iter.next();
-            break;
-        }
-    }
-
-    let packages: Vec<&str> = iter
-        .filter_map(|line| line.split(' ').next())
-        .filter(|package| !package.is_empty())
+    let packages: Vec<String> = std::fs::read_dir(dir::get_depy_dir_location() + "\\apps")
+        .unwrap()
+        .into_iter()
+        .filter_map(|file| match file {
+            Ok(file) => Some(file.file_name().to_string_lossy().to_string()),
+            Err(err) => {
+                log::info!(
+                    "Couldn't read a file inside the depy folder! Got the following error: {}",
+                    err.to_string()
+                );
+                None
+            }
+        })
+        .filter(|package| package.to_lowercase() != "scoop")
         .collect();
 
     for package in packages {
