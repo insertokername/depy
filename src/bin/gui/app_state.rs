@@ -17,6 +17,21 @@ pub struct InstalledPackageWrapper{
 }
 
 #[derive(Clone, Data, Lens)]
+pub struct LogBufferState{
+    pub log_buffer: LogBuffer,
+    pub is_bottom: bool,
+}
+
+impl LogBufferState{
+    pub fn new(log_buffer: LogBuffer)->LogBufferState{
+        LogBufferState{
+            log_buffer:log_buffer,
+            is_bottom: false,
+        }
+    }
+}
+
+#[derive(Clone, Data, Lens)]
 pub struct AppState {
     pub is_searching: bool,
     pub initializing_depy: bool,
@@ -28,7 +43,7 @@ pub struct AppState {
     pub package_list: Vector<InstalledPackageWrapper>,
     pub no_packages_found: bool,
     pub installed_packages: Vector<package::Package>,
-    pub console_buff : LogBuffer, 
+    pub console_buff : LogBufferState, 
     pub cur_window: WindowSection,
     pub add_bucket_name_field: String,
     pub add_bucket_url_field: String,
@@ -55,7 +70,7 @@ impl AppState {
             package_list: Vector::new(),
             no_packages_found: false,
             installed_packages: Vector::new(),
-            console_buff: LogBuffer::new(),
+            console_buff: LogBufferState::new(LogBuffer::new()),
             cur_window: WindowSection::PackageSearch,
             add_bucket_name_field: "".to_string(),
             add_bucket_url_field: "".to_string(),

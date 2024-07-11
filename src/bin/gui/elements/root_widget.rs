@@ -1,22 +1,19 @@
 use druid::{
-    widget::{Button, Flex, Label, Scroll, ViewSwitcher},
+    widget::{Button, Flex, ViewSwitcher},
     EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
 
 use super::{
-    bucket_management_menu::make_bucket_management, controller,
-    garbage_clean_menu::make_garbage_clean, package_search_menu,
+    bucket_management_menu::make_bucket_management,
+    console_widget::make_console,
+    controller,
+    garbage_clean_menu::make_garbage_clean,
+    package_search_menu,
 };
 
 pub fn root_widget() -> impl Widget<AppState> {
-    let logger_output = Scroll::new(
-        Label::dynamic(|data: &AppState, _| data.console_buff.get_contents())
-            .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
-    )
-    .vertical();
-
     Flex::column()
         .with_child(
             Flex::row()
@@ -57,7 +54,7 @@ pub fn root_widget() -> impl Widget<AppState> {
             0.8,
         )
         .with_flex_spacer(0.05)
-        .with_flex_child(logger_output, 0.25)
+        .with_flex_child(make_console().lens(AppState::console_buff), 0.25)
         .on_added(|_, ctx: &mut LifeCycleCtx, _, _| {
             ctx.submit_command(controller::INITIALIZE.to(Target::Global))
         })
