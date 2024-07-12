@@ -1,16 +1,14 @@
 use druid::{
-    widget::{Button, Flex, ViewSwitcher},
+    widget::{Button, Either, Flex, ViewSwitcher},
     EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
 
 use super::{
-    bucket_management_menu::make_bucket_management,
-    console_widget::make_console,
-    controller,
-    garbage_clean_menu::make_garbage_clean,
-    package_search_menu,
+    bucket_management_menu::make_bucket_management, console_widget::make_console, controller,
+    garbage_clean_menu::make_garbage_clean, package_search_menu,
+    precent_height_widget::PercentHeightWidget,
 };
 
 pub fn root_widget() -> impl Widget<AppState> {
@@ -53,8 +51,12 @@ pub fn root_widget() -> impl Widget<AppState> {
             ),
             0.8,
         )
-        .with_flex_spacer(0.05)
-        .with_flex_child(make_console().lens(AppState::console_buff), 0.25)
+        .with_spacer(5.0)
+        .with_child(Either::new(
+            |data: &AppState, _| data.console_buff.log_buffer.get_contents().is_empty(),
+            Flex::column(),
+            PercentHeightWidget::new(make_console().lens(AppState::console_buff), 0.25),
+        ))
         .on_added(|_, ctx: &mut LifeCycleCtx, _, _| {
             ctx.submit_command(controller::INITIALIZE.to(Target::Global))
         })

@@ -112,9 +112,6 @@ pub fn make_package_search() -> impl Widget<AppState> {
         .with_child(search_buttons)
         .with_child(no_packages_found_text)
         .with_child(install_button)
-        .with_child(Button::new("clear").on_click(|_, data: &mut AppState, _| {
-            data.console_buff.log_buffer.mutate_contents(|content| content.clear())
-        }))
         .with_child(show_installed_packages_button)
         .with_child(clean_error_button)
         .with_flex_child(message_box, 0.8)
