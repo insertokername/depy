@@ -4,28 +4,28 @@ use druid::{im::Vector, Data, Lens};
 use super::logger::LogBuffer;
 
 #[derive(Data, Clone, PartialEq)]
-pub enum InstalledPackageState{
+pub enum InstalledPackageState {
     AddPackage,
     SelectVersion,
     Remove,
 }
 
 #[derive(Clone, Data, Lens)]
-pub struct InstalledPackageWrapper{
+pub struct InstalledPackageWrapper {
     pub visual_package_state: InstalledPackageState,
-    pub package: package::Package
+    pub package: package::Package,
 }
 
 #[derive(Clone, Data, Lens)]
-pub struct LogBufferState{
+pub struct LogBufferState {
     pub log_buffer: LogBuffer,
     pub is_bottom: bool,
 }
 
-impl LogBufferState{
-    pub fn new(log_buffer: LogBuffer)->LogBufferState{
-        LogBufferState{
-            log_buffer:log_buffer,
+impl LogBufferState {
+    pub fn new(log_buffer: LogBuffer) -> LogBufferState {
+        LogBufferState {
+            log_buffer: log_buffer,
             is_bottom: false,
         }
     }
@@ -42,7 +42,7 @@ pub struct AppState {
     pub package_list: Vector<InstalledPackageWrapper>,
     pub no_packages_found: bool,
     pub installed_packages: Vector<package::Package>,
-    pub console_buff : LogBufferState, 
+    pub console_buff: LogBufferState,
     pub cur_window: WindowSection,
     pub add_bucket_name_field: String,
     pub add_bucket_url_field: String,
@@ -50,7 +50,7 @@ pub struct AppState {
 }
 
 #[derive(Data, PartialEq, Clone)]
-pub enum WindowSection{
+pub enum WindowSection {
     PackageSearch,
     BucketManagement,
     GarbageClean,

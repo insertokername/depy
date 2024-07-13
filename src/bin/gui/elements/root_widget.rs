@@ -1,5 +1,6 @@
 use druid::{
-    widget::{Either, Flex, Label, Split, ViewSwitcher}, EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt
+    widget::{Either, Flex, Label, Split, ViewSwitcher},
+    EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, WindowSection};

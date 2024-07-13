@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_timestamp(None)
         .init();
 
-    if ARGS.only_initialize{
+    if ARGS.only_initialize {
         shell::init_depy()?;
         return Ok(());
     }
@@ -21,24 +21,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    if ARGS.garbage_clean{
+    if ARGS.garbage_clean {
         shell::clean_depy_packages()?;
         return Ok(());
     }
 
-    if ARGS.path_clean{
+    if ARGS.path_clean {
         shell::cleanup_path()?;
         return Ok(());
     }
 
-    if ARGS.search.is_some() || ARGS.deep_search.is_some(){
-        let query = ARGS.search.clone().unwrap_or_else(||ARGS.deep_search.clone().unwrap());
+    if ARGS.search.is_some() || ARGS.deep_search.is_some() {
+        let query = ARGS
+            .search
+            .clone()
+            .unwrap_or_else(|| ARGS.deep_search.clone().unwrap());
         println!("query: '{query}'");
         println!(
             "Found following packages: {:#?}",
             bucket::query_local_buckets(&query, ARGS.deep_search.is_some()).unwrap()
         );
-        return Ok(())
+        return Ok(());
     }
 
     shell::init_depy()?;

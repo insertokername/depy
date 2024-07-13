@@ -30,18 +30,11 @@ fn clear_directory<P: AsRef<std::path::Path>>(dir: P) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn get_version_location(
-    name: &str,
-    version: &str,
-) -> String {
+pub fn get_version_location(name: &str, version: &str) -> String {
     [&get_depy_dir_location(), "\\apps\\", name, "\\", version].concat()
 }
 
-pub fn expand_vars(
-    value: &str,
-    name: &str,
-    version: &str,
-) -> String {
+pub fn expand_vars(value: &str, name: &str, version: &str) -> String {
     value
         .replace("$dir", &get_version_location(name, version))
         .replace(

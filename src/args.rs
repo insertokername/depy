@@ -15,13 +15,12 @@ pub struct Args {
     #[arg(short, long)]
     pub garbage_clean: bool,
 
-
     /// If set cleans up the path, should be used after program was forcefully closed
     #[arg(short, long)]
     pub path_clean: bool,
 
     /// If set initializes depy under %userprofile%/depy
-    #[arg(short='i', long)]
+    #[arg(short = 'i', long)]
     pub only_initialize: bool,
 
     /// If set delete packages that can't be uninstalled with del -f {package_name}
@@ -33,7 +32,6 @@ pub struct Args {
     pub search: Option<String>,
 
     /// Take a package name to search for in the locally installed buckets
-    #[arg(short='S', long)]
-    pub deep_search: Option<String>
-
+    #[arg(short = 'S', long)]
+    pub deep_search: Option<String>,
 }

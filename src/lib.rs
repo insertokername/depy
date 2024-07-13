@@ -13,7 +13,6 @@ extern crate lazy_static;
 
 use clap::Parser;
 
-
 lazy_static! {
     pub static ref ARGS: args::Args = args::Args::parse();
 }

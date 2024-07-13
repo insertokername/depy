@@ -12,7 +12,9 @@ impl EnvVar {
     }
 
     /// Transforms a serde val into a vec of environment variables
-    pub fn from_value(value: &serde_json::Value) -> Result<Vec<EnvVar>, parse_json::ParseJsonError> {
+    pub fn from_value(
+        value: &serde_json::Value,
+    ) -> Result<Vec<EnvVar>, parse_json::ParseJsonError> {
         let mut env_var_iter = if let Some(out_as_obj) = value.as_object() {
             out_as_obj
         } else {

@@ -1,10 +1,7 @@
-
 use crate::gui::app_state::AppState;
 use druid::{
-    Env, Event, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx,
-    Size, UpdateCtx, Widget,
+    Env, Event, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, Size, UpdateCtx, Widget,
 };
-
 
 pub struct PercentHeightWidget<W> {
     child: W,
@@ -24,9 +21,20 @@ impl<W: Widget<AppState>> Widget<AppState> for PercentHeightWidget<W> {
         self.child.update(ctx, old_data, data, env)
     }
 
-    fn layout(&mut self, ctx: &mut LayoutCtx, bc: &druid::BoxConstraints, data: &AppState, env: &Env) -> Size {
+    fn layout(
+        &mut self,
+        ctx: &mut LayoutCtx,
+        bc: &druid::BoxConstraints,
+        data: &AppState,
+        env: &Env,
+    ) -> Size {
         let size = ctx.window().get_size();
-        self.child.layout(ctx, &bc.shrink_max_height_to(size.height*self.percentage), data, env)
+        self.child.layout(
+            ctx,
+            &bc.shrink_max_height_to(size.height * self.percentage),
+            data,
+            env,
+        )
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &AppState, env: &Env) {

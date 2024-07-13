@@ -6,7 +6,6 @@ pub enum InstallerError {
     ResponseError,
 }
 
-
 use crate::{
     bucket, dir,
     manifest::Manifest,
@@ -20,7 +19,11 @@ pub fn install(mut packages: Vec<package::Package>) -> Result<(), Box<dyn std::e
     packages.sort();
     packages.dedup_by(|first, second| {
         if (*first).eq(second) {
-            log::info!("Only installing first of the duplicate packages:\nfirst: {:#?}\nsecond: {:#?}", first, second);
+            log::info!(
+                "Only installing first of the duplicate packages:\nfirst: {:#?}\nsecond: {:#?}",
+                first,
+                second
+            );
             true
         } else {
             false
