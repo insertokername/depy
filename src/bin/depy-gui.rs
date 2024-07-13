@@ -1,5 +1,4 @@
 #![windows_subsystem = "windows"]
-
 use druid::{widget::Label, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
 use gui::app_state::AppState;
@@ -11,7 +10,7 @@ const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString:
 fn main() {
     let main_window = WindowDesc::new(gui::elements::root_widget::root_widget())
         .title(WINDOW_TITLE)
-        .window_size((800.0, 700.0));
+        .window_size((800.0, 750.0));
 
     let initial_state = gui::app_state::AppState::default();
 

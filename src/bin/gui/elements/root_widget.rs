@@ -1,6 +1,5 @@
 use druid::{
-    widget::{Either, Flex, Label, Split, ViewSwitcher},
-    EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
+    widget::{Either, Flex, Label, Split, ViewSwitcher}, EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
@@ -67,7 +66,7 @@ pub fn root_widget() -> impl Widget<AppState> {
     )
     .solid_bar(true)
     .split_point(0.3)
-    .bar_size(6.0);
+    .bar_size(3.0);
 
     Flex::column()
         .with_flex_child(split, 1.0)

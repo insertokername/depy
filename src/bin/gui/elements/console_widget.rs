@@ -2,7 +2,10 @@ use std::f64::INFINITY;
 
 use crate::gui::app_state::LogBufferState;
 use druid::{
-    widget::{Button, Container, Either, Flex, Label, Scroll}, BoxConstraints, Color, Data, Env, Event, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, Selector, Size, Target, UpdateCtx, Widget, WidgetExt
+    theme::BORDER_DARK,
+    widget::{Button, Container, Either, Flex, Label, Scroll},
+    BoxConstraints, Data, Env, Event, EventCtx, Insets, LayoutCtx, LifeCycle, LifeCycleCtx,
+    PaintCtx, Selector, Size, Target, UpdateCtx, Widget, WidgetExt,
 };
 
 const SCROLL_BOTTOM: Selector<()> = Selector::new("scroll-bottom");
@@ -86,21 +89,24 @@ impl Widget<LogBufferState> for ConsoleScroll {
 
 pub fn make_console() -> impl Widget<LogBufferState> {
     Container::new(
-    Flex::column()
-        .with_child(Either::new(
-            |data: &LogBufferState, _| data.log_buffer.get_contents().is_empty(),
-            Flex::column(),
-            Button::new("X")
-                .on_click(|_, data: &mut LogBufferState, _| {
-                    data.log_buffer.mutate_contents(|content| content.clear())
-                })
-                .align_right(),
-        ))
-        .with_flex_child(
-            ConsoleScroll::new(
-                Label::dynamic(|data: &LogBufferState, _| data.log_buffer.get_contents())
-                    .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
+        Flex::column()
+            .with_child(Either::new(
+                |data: &LogBufferState, _| data.log_buffer.get_contents().is_empty(),
+                Flex::column(),
+                Button::new("X")
+                    .on_click(|_, data: &mut LogBufferState, _| {
+                        data.log_buffer.mutate_contents(|content| content.clear())
+                    })
+                    .padding(Insets::uniform(2.1))
+                    .align_right(),
+            ))
+            .with_flex_child(
+                ConsoleScroll::new(
+                    Label::dynamic(|data: &LogBufferState, _| data.log_buffer.get_contents())
+                        .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
+                ),
+                1.0,
             ),
-            1.0,
-        )).border(Color::GRAY, 6.0 )
+    )
+    .border(BORDER_DARK, 3.0)
 }

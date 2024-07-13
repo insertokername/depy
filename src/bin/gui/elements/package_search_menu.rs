@@ -1,7 +1,7 @@
 use druid::{
     theme::*,
     widget::{Button, Container, Either, Flex, Label, LensWrap, List, Scroll, TextBox},
-    Command, EventCtx, Target, UnitPoint, Widget, WidgetExt,
+    Command, EventCtx, Insets, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, InstalledPackageState, InstalledPackageWrapper};
@@ -47,19 +47,22 @@ pub fn make_package_search() -> impl Widget<AppState> {
             .on_click(|ctx, data: &mut AppState, _| {
                 super::controller::find_packages_async(data, ctx, false)
             })
-            .disabled_if(|data: &AppState, _| data.is_searching),
+            .disabled_if(|data: &AppState, _| data.is_searching)
+            .padding(Insets::uniform(2.1)),
         )
         .with_spacer(5.0)
         .with_child(Either::new(
             |data: &AppState, _| !data.is_searching,
-            Button::new("Deep Search Package").on_click(|ctx, data: &mut AppState, _| {
-                super::controller::find_packages_async(data, ctx, true)
-            }),
+            Button::new("Deep Search Package")
+                .on_click(|ctx, data: &mut AppState, _| {
+                    super::controller::find_packages_async(data, ctx, true)
+                })
+                .padding(Insets::uniform(2.1)),
             Flex::column(),
         ));
 
-    let show_installed_packages_button = Button::new("Show installed packages").on_click(
-        |ctx: &mut EventCtx, data: &mut AppState, _| {
+    let show_installed_packages_button = Button::new("Show installed packages")
+        .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
             ctx.submit_command(Command::new(
                 controller::FINISHED_SEARCH,
                 data.installed_packages
@@ -72,14 +75,15 @@ pub fn make_package_search() -> impl Widget<AppState> {
                     .collect(),
                 Target::Global,
             ))
-        },
-    );
+        })
+        .padding(Insets::uniform(2.1));
 
     let install_button = Button::new("Install added packages")
         .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
             controller::install_packages(data, ctx);
         })
-        .fix_size(250.0, 40.0);
+        .fix_size(250.0, 40.0)
+        .padding(Insets::uniform(2.1));
 
     Flex::column()
         .with_flex_child(
