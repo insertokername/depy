@@ -1,6 +1,6 @@
 use druid::{
     widget::{Button, Flex},
-    EventCtx, Target, Widget,
+    EventCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::AppState;
@@ -19,4 +19,5 @@ pub fn make_garbage_clean() -> impl Widget<AppState> {
                 ctx.submit_command(controller::UNINSTALL_DEPY.to(Target::Global))
             }),
         )
+        .align_vertical(UnitPoint::new(0.5, 0.0))
 }

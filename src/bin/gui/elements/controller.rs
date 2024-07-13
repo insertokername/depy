@@ -71,13 +71,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 data.no_packages_found = false;
                 data.last_search_term = data.search_term.clone();
                 data.is_searching = false;
-                match &mut data.error_message {
-                    Some(some) => {
-                        some.push_str(err_msg);
-                        some.push('\n');
-                    }
-                    None => data.error_message = Some(err_msg.to_string()),
-                }
+                log::error!("Got error while searching for package: {}",err_msg.to_string());
             }
             if let Some(pkg) = cmd.get(ADD_PACKAGE) {
                 if !data.installed_packages.contains(pkg) {
@@ -105,14 +99,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
             }
             if let Some(()) = cmd.get(FINISHED_INSTALL) {}
             if let Some(err_msg) = cmd.get(FAILED_INSTALL) {
-                match &mut data.error_message {
-                    Some(some) => {
-                        some.push_str("Got an error while installing: ");
-                        some.push_str(&err_msg);
-                        some.push('\n');
-                    }
-                    None => data.error_message = Some(err_msg.to_string()),
-                }
+                log::error!("Got an error while installing: {}",err_msg.to_string());
             }
             if let Some(()) = cmd.get(ADD_BUCKET) {
                 log::info!("Attempting to add bucket...");

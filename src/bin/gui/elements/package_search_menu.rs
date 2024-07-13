@@ -1,7 +1,7 @@
 use druid::{
     theme::*,
     widget::{Button, Container, Either, Flex, Label, LensWrap, List, Scroll, TextBox},
-    Color, Command, EventCtx, Target, Widget, WidgetExt,
+    Command, EventCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, InstalledPackageState, InstalledPackageWrapper};
@@ -18,37 +18,11 @@ pub fn make_package_search() -> impl Widget<AppState> {
     let search_bar =
         Container::new(container.rounded(2.0).expand_width().padding(10.0)).expand_width();
 
-    let clean_error_button = Either::new(
-        |data: &AppState, _| data.error_message.is_some(),
-        Button::new("Clean errors").on_click(|_, data: &mut AppState, _| data.error_message = None),
-        Flex::column(),
-    );
-
-    let error_box = Label::dynamic(|data: &AppState, _| {
-        match &data.error_message {
-            Some(some) => some,
-            None => "Error while loading an error message!",
-        }
-        .to_string()
-    })
-    .with_text_size(TEXT_SIZE_LARGE)
-    .with_line_break_mode(druid::widget::LineBreaking::WordWrap)
-    .with_text_color(Color::RED)
-    .scroll()
-    .vertical();
-
     let list = Scroll::new(LensWrap::new(
         List::new(|| super::package_widget::package_widget()),
         AppState::package_list,
     ))
     .vertical();
-
-    // this is either the list of packages or an error
-    let message_box = Either::new(
-        |data: &AppState, _| data.error_message.is_some(),
-        error_box,
-        list,
-    );
 
     let no_packages_found_text = Either::new(
         |data: &AppState, _| data.no_packages_found,
@@ -84,12 +58,6 @@ pub fn make_package_search() -> impl Widget<AppState> {
             Flex::column(),
         ));
 
-    let install_button = Button::new("update .depyenv and install").on_click(
-        |ctx: &mut EventCtx, data: &mut AppState, _| {
-            controller::install_packages(data, ctx);
-        },
-    );
-
     let show_installed_packages_button = Button::new("Show installed packages").on_click(
         |ctx: &mut EventCtx, data: &mut AppState, _| {
             ctx.submit_command(Command::new(
@@ -107,12 +75,26 @@ pub fn make_package_search() -> impl Widget<AppState> {
         },
     );
 
+    let install_button = Button::new("Install added packages")
+        .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
+            controller::install_packages(data, ctx);
+        })
+        .fix_size(250.0, 40.0);
+
     Flex::column()
-        .with_child(search_bar)
-        .with_child(search_buttons)
-        .with_child(no_packages_found_text)
-        .with_child(install_button)
-        .with_child(show_installed_packages_button)
-        .with_child(clean_error_button)
-        .with_flex_child(message_box, 0.8)
+        .with_flex_child(
+            Flex::column()
+                .with_child(search_bar)
+                .with_child(search_buttons)
+                .with_child(show_installed_packages_button)
+                .with_child(no_packages_found_text)
+                .with_flex_child(list, 1.0),
+            1.0,
+        )
+        .with_spacer(6.0)
+        .with_child(
+            install_button
+                .align_vertical(UnitPoint::BOTTOM)
+                .align_right(),
+        )
 }

@@ -5,5 +5,5 @@ pub fn make_separator<T: Data>() -> impl Widget<T> {
         .height(2.0)
         .expand_width()
         .background(Color::GRAY)
-        .padding(Insets::uniform_xy(28.0, 3.0))
+        .padding(Insets::new(0.0, 5.0, 40.0, 5.0))
 }

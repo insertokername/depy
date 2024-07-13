@@ -1,16 +1,18 @@
-use std::io::Write;
-
 use druid::{
-    widget::{Button, Container, Either, Flex, Label, SizedBox, Split, ViewSwitcher},
-    Color, EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
+    widget::{Either, Flex, Label, Split, ViewSwitcher},
+    EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
 
 use super::{
-    bucket_management_menu::make_bucket_management, console_widget::make_console, controller,
-    garbage_clean_menu::make_garbage_clean, package_search_menu,
-    precent_height_widget::PercentHeightWidget, separator::make_separator,
+    bucket_management_menu::{self},
+    console_widget::make_console,
+    controller,
+    garbage_clean_menu::{self},
+    package_search_menu,
+    precent_height_widget::PercentHeightWidget,
+    separator::make_separator,
 };
 
 pub fn root_widget() -> impl Widget<AppState> {
@@ -21,7 +23,9 @@ pub fn root_widget() -> impl Widget<AppState> {
                     .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
                     .on_click(|_, data: &mut AppState, _| {
                         data.cur_window = WindowSection::PackageSearch
-                    }),
+                    })
+                    .align_left()
+                    .padding(Insets::uniform_xy(8.0, 0.0)),
             )
             .with_child(make_separator())
             .with_child(
@@ -30,12 +34,9 @@ pub fn root_widget() -> impl Widget<AppState> {
                     .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
                         ctx.submit_command(controller::UPDATE_BUCKETS.to(Target::Global));
                         data.cur_window = WindowSection::BucketManagement;
-                    }),
-            )
-            .with_child(
-                SizedBox::empty()
-                    .height(2.0)
-                    .background(Color::GRAY),
+                    })
+                    .align_left()
+                    .padding(Insets::uniform_xy(8.0, 0.0)),
             )
             .with_child(make_separator())
             .with_child(
@@ -43,11 +44,13 @@ pub fn root_widget() -> impl Widget<AppState> {
                     .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
                     .on_click(|_, data: &mut AppState, _| {
                         data.cur_window = WindowSection::GarbageClean;
-                    }),
+                    })
+                    .align_left()
+                    .padding(Insets::uniform_xy(8.0, 0.0)),
             )
-            .align_horizontal(UnitPoint::CENTER)
+            .align_horizontal(UnitPoint::LEFT)
             .align_vertical(UnitPoint::TOP)
-            .padding(Insets::new(0.0, 20.0, 0.0, 0.0)),
+            .padding(Insets::new(0.0, 15.0, 0.0, 0.0)),
         ViewSwitcher::new(
             |data: &AppState, _| data.cur_window.clone(),
             |section: &WindowSection, _, _| match section {
@@ -55,13 +58,12 @@ pub fn root_widget() -> impl Widget<AppState> {
                     Box::new(package_search_menu::make_package_search())
                 }
                 WindowSection::BucketManagement => {
-                    Box::new(make_bucket_management().align_vertical(UnitPoint::CENTER))
+                    Box::new(bucket_management_menu::make_bucket_management())
                 }
-                WindowSection::GarbageClean => {
-                    Box::new(make_garbage_clean().align_vertical(UnitPoint::CENTER))
-                }
+                WindowSection::GarbageClean => Box::new(garbage_clean_menu::make_garbage_clean()),
             },
-        ),
+        )
+        .padding(Insets::uniform_xy(5.0, 15.0)),
     )
     .solid_bar(true)
     .split_point(0.3)
@@ -70,12 +72,7 @@ pub fn root_widget() -> impl Widget<AppState> {
     Flex::column()
         .with_flex_child(split, 1.0)
         .with_child(Either::new(
-            |data: &AppState, _| {
-                data.console_buff
-                    .log_buffer
-                    .get_contents()
-                    .is_empty()
-            },
+            |data: &AppState, _| data.console_buff.log_buffer.get_contents().is_empty(),
             Flex::column(),
             PercentHeightWidget::new(make_console().lens(AppState::console_buff), 0.25),
         ))
