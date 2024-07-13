@@ -207,7 +207,7 @@ fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
         });
         match flat_result {
             Ok(_) => {
-                log::info!("Removing bucket!");
+                log::info!("Removed bucket!");
                 let _ = sink.submit_command(UPDATE_BUCKETS, (), Target::Global);
             }
             Err(err) => log::error!("Got an error while removing bucket! {err}"),
