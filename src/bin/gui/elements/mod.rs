@@ -6,3 +6,4 @@ pub mod package_search_menu;
 pub mod package_widget;
 pub mod precent_height_widget;
 pub mod root_widget;
+pub mod separator;

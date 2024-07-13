@@ -1,6 +1,8 @@
+use std::io::Write;
+
 use druid::{
-    widget::{Button, Either, Flex, ViewSwitcher},
-    EventCtx, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
+    widget::{Button, Container, Either, Flex, Label, SizedBox, Split, ViewSwitcher},
+    Color, EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
 };
 
 use crate::gui::app_state::{AppState, WindowSection};
@@ -8,52 +10,72 @@ use crate::gui::app_state::{AppState, WindowSection};
 use super::{
     bucket_management_menu::make_bucket_management, console_widget::make_console, controller,
     garbage_clean_menu::make_garbage_clean, package_search_menu,
-    precent_height_widget::PercentHeightWidget,
+    precent_height_widget::PercentHeightWidget, separator::make_separator,
 };
 
 pub fn root_widget() -> impl Widget<AppState> {
-    Flex::column()
-        .with_child(
-            Flex::row()
-                .with_child(
-                    Button::new("search package").on_click(|_, data: &mut AppState, _| {
+    let split = Split::columns(
+        Flex::column()
+            .with_child(
+                Label::new("search package")
+                    .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
+                    .on_click(|_, data: &mut AppState, _| {
                         data.cur_window = WindowSection::PackageSearch
                     }),
-                )
-                .with_child(Button::new("bucket management").on_click(
-                    |ctx: &mut EventCtx, data: &mut AppState, _| {
+            )
+            .with_child(make_separator())
+            .with_child(
+                Label::new("bucket management")
+                    .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
+                    .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
                         ctx.submit_command(controller::UPDATE_BUCKETS.to(Target::Global));
                         data.cur_window = WindowSection::BucketManagement;
-                    },
-                ))
-                .with_child(
-                    Button::new("garbage clean").on_click(|_, data: &mut AppState, _| {
+                    }),
+            )
+            .with_child(
+                SizedBox::empty()
+                    .height(2.0)
+                    .background(Color::GRAY),
+            )
+            .with_child(make_separator())
+            .with_child(
+                Label::new("garbage clean")
+                    .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
+                    .on_click(|_, data: &mut AppState, _| {
                         data.cur_window = WindowSection::GarbageClean;
                     }),
-                )
-                .align_horizontal(UnitPoint::LEFT)
-                .align_vertical(UnitPoint::TOP),
-        )
-        .with_flex_child(
-            ViewSwitcher::new(
-                |data: &AppState, _| data.cur_window.clone(),
-                |section: &WindowSection, _, _| match section {
-                    WindowSection::PackageSearch => {
-                        Box::new(package_search_menu::make_package_search())
-                    }
-                    WindowSection::BucketManagement => {
-                        Box::new(make_bucket_management().align_vertical(UnitPoint::CENTER))
-                    }
-                    WindowSection::GarbageClean => {
-                        Box::new(make_garbage_clean().align_vertical(UnitPoint::CENTER))
-                    }
-                },
-            ),
-            0.8,
-        )
-        .with_spacer(5.0)
+            )
+            .align_horizontal(UnitPoint::CENTER)
+            .align_vertical(UnitPoint::TOP)
+            .padding(Insets::new(0.0, 20.0, 0.0, 0.0)),
+        ViewSwitcher::new(
+            |data: &AppState, _| data.cur_window.clone(),
+            |section: &WindowSection, _, _| match section {
+                WindowSection::PackageSearch => {
+                    Box::new(package_search_menu::make_package_search())
+                }
+                WindowSection::BucketManagement => {
+                    Box::new(make_bucket_management().align_vertical(UnitPoint::CENTER))
+                }
+                WindowSection::GarbageClean => {
+                    Box::new(make_garbage_clean().align_vertical(UnitPoint::CENTER))
+                }
+            },
+        ),
+    )
+    .solid_bar(true)
+    .split_point(0.3)
+    .bar_size(6.0);
+
+    Flex::column()
+        .with_flex_child(split, 1.0)
         .with_child(Either::new(
-            |data: &AppState, _| data.console_buff.log_buffer.get_contents().is_empty(),
+            |data: &AppState, _| {
+                data.console_buff
+                    .log_buffer
+                    .get_contents()
+                    .is_empty()
+            },
             Flex::column(),
             PercentHeightWidget::new(make_console().lens(AppState::console_buff), 0.25),
         ))

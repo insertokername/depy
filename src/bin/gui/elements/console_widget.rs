@@ -2,9 +2,7 @@ use std::f64::INFINITY;
 
 use crate::gui::app_state::LogBufferState;
 use druid::{
-    widget::{Button, Either, Flex, Label, Scroll},
-    BoxConstraints, Data, Env, Event, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx,
-    Selector, Size, Target, UpdateCtx, Widget, WidgetExt,
+    widget::{Button, Container, Either, Flex, Label, Scroll}, BoxConstraints, Color, Data, Env, Event, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, Selector, Size, Target, UpdateCtx, Widget, WidgetExt
 };
 
 const SCROLL_BOTTOM: Selector<()> = Selector::new("scroll-bottom");
@@ -87,6 +85,7 @@ impl Widget<LogBufferState> for ConsoleScroll {
 }
 
 pub fn make_console() -> impl Widget<LogBufferState> {
+    Container::new(
     Flex::column()
         .with_child(Either::new(
             |data: &LogBufferState, _| data.log_buffer.get_contents().is_empty(),
@@ -103,5 +102,5 @@ pub fn make_console() -> impl Widget<LogBufferState> {
                     .with_line_break_mode(druid::widget::LineBreaking::WordWrap),
             ),
             1.0,
-        )
+        )).border(Color::GRAY, 6.0 )
 }
