@@ -1,4 +1,5 @@
 #![windows_subsystem = "windows"]
+use clap::Parser;
 use druid::{widget::Label, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
 use gui::app_state::AppState;
@@ -8,6 +9,7 @@ mod gui;
 const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString::new("Depy");
 
 fn main() {
+    let args = depy::args::ArgsGui::parse();
     let main_window = WindowDesc::new(gui::elements::root_widget::root_widget())
         .title(WINDOW_TITLE)
         .window_size((800.0, 750.0));
@@ -17,7 +19,7 @@ fn main() {
     let pipe = Target::Pipe(Box::new(initial_state.console_buff.log_buffer.clone_arc()));
 
     env_logger::Builder::new()
-        .filter_level(if depy::ARGS.verbose {
+        .filter_level(if args.verbose {
             log::LevelFilter::Debug
         } else {
             log::LevelFilter::Info

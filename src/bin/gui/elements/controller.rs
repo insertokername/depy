@@ -44,8 +44,8 @@ pub(super) const UPDATE_BUCKETS: Selector<()> = Selector::new("update-buckets");
 pub(super) const INITIALIZE: Selector<()> = Selector::new("initialize");
 pub(super) const FINISHED_INITIALIZE: Selector<()> = Selector::new("finished_initialize");
 
-pub(super) const CLEAN_DEPY: Selector<()> = Selector::new("clean-depy");
-pub(super) const UNINSTALL_DEPY: Selector<()> = Selector::new("uninstall-depy");
+pub(super) const CLEAN_DEPY: Selector<bool> = Selector::new("clean-depy");
+pub(super) const UNINSTALL_DEPY: Selector<bool> = Selector::new("uninstall-depy");
 pub(super) const FINISHED_CLEAN: Selector<()> = Selector::new("finished-clean");
 
 pub struct AppController;
@@ -132,13 +132,13 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
             if let Some(()) = cmd.get(FINISHED_INITIALIZE) {
                 data.initializing_depy = false;
             }
-            if let Some(()) = cmd.get(CLEAN_DEPY) {
+            if let Some(force_uninstall) = cmd.get(CLEAN_DEPY) {
                 data.is_cleaning_depy = true;
-                clean_depy_async(ctx);
+                clean_depy_async(ctx, force_uninstall.clone());
             }
-            if let Some(()) = cmd.get(UNINSTALL_DEPY) {
+            if let Some(force_uninstall) = cmd.get(UNINSTALL_DEPY) {
                 data.is_uninstalled = true;
-                uninstall_depy_async();
+                uninstall_depy_async(force_uninstall.clone());
             }
             if let Some(()) = cmd.get(FINISHED_CLEAN) {
                 data.is_cleaning_depy = false;
@@ -292,9 +292,9 @@ fn init_depy_async(ctx: &mut EventCtx) {
     });
 }
 
-fn uninstall_depy_async() {
+fn uninstall_depy_async(force_uninstall: bool) {
     thread::spawn(move || {
-        let result = catch_unwind(|| shell::uninstall_depy());
+        let result = catch_unwind(|| shell::uninstall_depy(force_uninstall));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::UninstallErrror(panic_message))
         });
@@ -311,10 +311,10 @@ fn uninstall_depy_async() {
     });
 }
 
-fn clean_depy_async(ctx: &mut EventCtx) {
+fn clean_depy_async(ctx: &mut EventCtx, force_uninstall: bool) {
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
-        let result = catch_unwind(|| shell::clean_depy_packages());
+        let result = catch_unwind(|| shell::clean_depy_packages(force_uninstall));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::CleanupError(panic_message))
         });

@@ -274,7 +274,7 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     Ok(())
 }
 
-pub fn clean_depy_packages() -> Result<(), Box<dyn std::error::Error>> {
+pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::error::Error>> {
     let packages: Vec<String> = std::fs::read_dir(dir::get_depy_dir_location() + "\\apps")
         .unwrap()
         .into_iter()
@@ -305,7 +305,7 @@ pub fn clean_depy_packages() -> Result<(), Box<dyn std::error::Error>> {
         ) {
             Ok(out) => out,
             Err(err) => {
-                if crate::ARGS.force_uninstall {
+                if force_uninstall {
                     run_cmd_in_depy_dir(&format!(
                         "rmdir /S /Q {}\\apps\\{package}",
                         dir::get_depy_dir_location()
@@ -324,7 +324,7 @@ pub fn clean_depy_packages() -> Result<(), Box<dyn std::error::Error>> {
         if !cmd_output.contains(&format!("'{package}' was uninstalled"))
             && !cmd_output.contains(&format!("'{package}' isn't installed."))
         {
-            if crate::ARGS.force_uninstall {
+            if force_uninstall {
                 run_cmd_in_depy_dir(&format!(
                     "rmdir /S /Q {}\\apps\\{package}",
                     dir::get_depy_dir_location()
@@ -342,12 +342,12 @@ pub fn clean_depy_packages() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn uninstall_depy() -> Result<(), Box<dyn std::error::Error>> {
+pub fn uninstall_depy(force_uninstall: bool) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Uninstalling depy apps...");
 
     // get all programs from scoop list
     // run uninstall for all of them, if one fails just rm -rf it
-    clean_depy_packages()?;
+    clean_depy_packages(force_uninstall)?;
 
     log::info!("Deleting depy directory...");
 

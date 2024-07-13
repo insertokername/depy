@@ -2,7 +2,7 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-pub struct Args {
+pub struct ArgsCli {
     /// If set prints out debuging info
     #[arg(short, long)]
     pub verbose: bool,
@@ -34,4 +34,12 @@ pub struct Args {
     /// Take a package name to search for in the locally installed buckets
     #[arg(short = 'S', long)]
     pub deep_search: Option<String>,
+}
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+pub struct ArgsGui {
+    /// If set prints out debuging info
+    #[arg(short, long)]
+    pub verbose: bool,
 }
