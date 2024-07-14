@@ -70,7 +70,10 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn generate_install_script(indentifier: &str, version: &str) -> String {
+fn generate_install_script(
+    indentifier: &str,
+    version: &str,
+) -> String {
     [
         "scoop config use_isolated_path DEPY_TEMP_VAL & ",
         &if version == "latest" {
@@ -242,7 +245,11 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
 
     let path_local_shims = std::path::Path::new(local_shims);
     paths += &[
-        path_local_shims.absolutize().unwrap().to_str().unwrap(),
+        path_local_shims
+            .absolutize()
+            .unwrap()
+            .to_str()
+            .unwrap(),
         ";",
     ]
     .concat();
@@ -279,7 +286,11 @@ pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::err
         .unwrap()
         .into_iter()
         .filter_map(|file| match file {
-            Ok(file) => Some(file.file_name().to_string_lossy().to_string()),
+            Ok(file) => Some(
+                file.file_name()
+                    .to_string_lossy()
+                    .to_string(),
+            ),
             Err(err) => {
                 log::info!(
                     "Couldn't read a file inside the depy folder! Got the following error: {}",

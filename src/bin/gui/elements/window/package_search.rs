@@ -4,9 +4,10 @@ use druid::{
     Command, EventCtx, Insets, Target, UnitPoint, Widget, WidgetExt,
 };
 
-use crate::gui::app_state::{AppState, InstalledPackageState, InstalledPackageWrapper};
-
-use super::controller;
+use crate::gui::{
+    app_state::{AppState, InstalledPackageState, InstalledPackageWrapper},
+    elements::{controller, package::package_widget},
+};
 
 pub fn make_package_search() -> impl Widget<AppState> {
     let search_box = TextBox::new()
@@ -15,11 +16,16 @@ pub fn make_package_search() -> impl Widget<AppState> {
         .lens(AppState::search_term);
 
     let container = Container::new(search_box);
-    let search_bar =
-        Container::new(container.rounded(2.0).expand_width().padding(10.0)).expand_width();
+    let search_bar = Container::new(
+        container
+            .rounded(2.0)
+            .expand_width()
+            .padding(10.0),
+    )
+    .expand_width();
 
     let list = Scroll::new(LensWrap::new(
-        List::new(|| super::package_widget::package_widget()),
+        List::new(|| package_widget()),
         AppState::package_list,
     ))
     .vertical();
@@ -45,7 +51,7 @@ pub fn make_package_search() -> impl Widget<AppState> {
                 .into()
             })
             .on_click(|ctx, data: &mut AppState, _| {
-                super::controller::find_packages_async(data, ctx, false)
+                controller::find_packages_async(data, ctx, false)
             })
             .disabled_if(|data: &AppState, _| data.is_searching)
             .padding(Insets::uniform(2.1)),
@@ -55,7 +61,7 @@ pub fn make_package_search() -> impl Widget<AppState> {
             |data: &AppState, _| !data.is_searching,
             Button::new("Deep Search Package")
                 .on_click(|ctx, data: &mut AppState, _| {
-                    super::controller::find_packages_async(data, ctx, true)
+                    controller::find_packages_async(data, ctx, true)
                 })
                 .padding(Insets::uniform(2.1)),
             Flex::column(),

@@ -3,9 +3,7 @@ use druid::{
     Command, EventCtx, Insets, Target, UnitPoint, Widget, WidgetExt,
 };
 
-use crate::gui::app_state::AppState;
-
-use super::controller;
+use crate::gui::{app_state::AppState, elements::controller};
 
 pub fn make_garbage_clean() -> impl Widget<AppState> {
     Flex::column()

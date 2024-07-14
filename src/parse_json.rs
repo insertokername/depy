@@ -69,7 +69,7 @@ pub fn find_all_added_paths(json_body: &serde_json::Value) -> Result<Vec<String>
 }
 
 pub fn get_env_variables(
-    json_body: &serde_json::Value,
+    json_body: &serde_json::Value
 ) -> Result<Vec<env_var::EnvVar>, ParseJsonError> {
     let mut out_vec: Vec<env_var::EnvVar> = vec![];
 
@@ -93,40 +93,65 @@ pub fn get_env_variables(
     return Ok(out_vec);
 }
 
-fn check_bin(bin_attr: &serde_json::Value, query: &str) -> Result<bool, ParseJsonError> {
+fn check_bin(
+    bin_attr: &serde_json::Value,
+    query: &str,
+) -> Result<bool, ParseJsonError> {
     if bin_attr.is_string() {
-        Ok(bin_attr.as_str().unwrap().contains(query))
+        Ok(bin_attr
+            .as_str()
+            .unwrap()
+            .contains(query))
     } else if bin_attr.is_array() {
-        let are_val_ok = bin_attr.as_array().unwrap().iter().any(|val| {
-            let valid_arr = if val.is_array() {
-                val.as_array().unwrap().iter().all(|val| val.is_string())
-            } else {
-                false
-            };
-            (val.is_array() && valid_arr) || val.is_string()
-        });
+        let are_val_ok = bin_attr
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|val| {
+                let valid_arr = if val.is_array() {
+                    val.as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|val| val.is_string())
+                } else {
+                    false
+                };
+                (val.is_array() && valid_arr) || val.is_string()
+            });
 
         if !are_val_ok {
             return Err(ParseJsonError::BinFormatError);
         }
 
-        Ok(bin_attr.as_array().unwrap().iter().any(|val| {
-            if val.is_array() {
-                val.as_array()
-                    .unwrap()
-                    .iter()
-                    .any(|alias_or_name| alias_or_name.as_str().unwrap().contains(query))
-            } else {
-                val.as_str().unwrap().contains(query)
-            }
-        }))
+        Ok(bin_attr
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|val| {
+                if val.is_array() {
+                    val.as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|alias_or_name| {
+                            alias_or_name
+                                .as_str()
+                                .unwrap()
+                                .contains(query)
+                        })
+                } else {
+                    val.as_str().unwrap().contains(query)
+                }
+            }))
     } else {
         Err(ParseJsonError::BinFormatError)
     }
 }
 
 /// checks all bins in a manifest for a certain query
-pub fn query_bin(json_body: &serde_json::Value, query: &str) -> Result<bool, ParseJsonError> {
+pub fn query_bin(
+    json_body: &serde_json::Value,
+    query: &str,
+) -> Result<bool, ParseJsonError> {
     if !json_body["bin"].is_null() {
         let ok_bin = match check_bin(&json_body["bin"], query) {
             Ok(val) => val,

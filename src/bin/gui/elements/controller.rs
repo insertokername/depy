@@ -78,7 +78,8 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
             }
             if let Some(pkg) = cmd.get(ADD_PACKAGE) {
                 if !data.installed_packages.contains(pkg) {
-                    data.installed_packages.push_back(pkg.clone());
+                    data.installed_packages
+                        .push_back(pkg.clone());
                     if let Some(changed_package) = data
                         .package_list
                         .iter_mut()
@@ -172,7 +173,10 @@ fn flatten_err<T, FlatErr>(
     }
 }
 
-pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
+pub fn install_packages(
+    data: &mut AppState,
+    ctx: &mut EventCtx,
+) {
     let package_vec = data
         .installed_packages
         .clone()
@@ -195,7 +199,10 @@ pub fn install_packages(data: &mut AppState, ctx: &mut EventCtx) {
     });
 }
 
-fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
+fn remove_bucket(
+    data: &mut AppState,
+    ctx: &mut EventCtx,
+) {
     let bucket_name = data.add_bucket_name_field.clone();
 
     let sink = ctx.get_external_handle();
@@ -218,7 +225,10 @@ fn remove_bucket(data: &mut AppState, ctx: &mut EventCtx) {
     });
 }
 
-fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
+fn add_bucket(
+    data: &mut AppState,
+    ctx: &mut EventCtx,
+) {
     let bucket_name = data.add_bucket_name_field.clone();
     let bucket_url = data.add_bucket_url_field.clone();
 
@@ -242,7 +252,11 @@ fn add_bucket(data: &mut AppState, ctx: &mut EventCtx) {
     });
 }
 
-pub fn find_packages_async(data: &mut AppState, ctx: &mut EventCtx, deep_search: bool) {
+pub fn find_packages_async(
+    data: &mut AppState,
+    ctx: &mut EventCtx,
+    deep_search: bool,
+) {
     data.is_searching = true;
 
     let sink = ctx.get_external_handle();
@@ -311,7 +325,10 @@ fn uninstall_depy_async(force_uninstall: bool) {
     });
 }
 
-fn clean_depy_async(ctx: &mut EventCtx, force_uninstall: bool) {
+fn clean_depy_async(
+    ctx: &mut EventCtx,
+    force_uninstall: bool,
+) {
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
         let result = catch_unwind(|| shell::clean_depy_packages(force_uninstall));

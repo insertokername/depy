@@ -19,7 +19,7 @@ fn setup_light(env: &mut Env){
 
 
     env.set(BORDER_DARK,                Color::rgb8(110, 115, 141));        // Overlay0
-    env.set(BORDER_LIGHT,               Color::rgb8(147, 154, 183));        // Overlay0
+    env.set(BORDER_LIGHT,               Color::rgb8(165, 173, 203));        // Subtext0
 
 
     env.set(BACKGROUND_LIGHT,           Color::rgb8(30, 30, 46));           // Surface 0
@@ -47,7 +47,7 @@ fn setup_dark(env: &mut Env){
 
 
     env.set(BORDER_DARK,                Color::rgb8(108, 112, 134));        // Overlay0
-    env.set(BORDER_LIGHT,               Color::rgb8(108, 112, 134));        // Overlay0
+    env.set(BORDER_LIGHT,               Color::rgb8(166, 173, 200));        // Subtext0
 
 
     env.set(BACKGROUND_LIGHT,           Color::rgb8(30, 30, 46));           // Base

@@ -1,80 +1,30 @@
 use druid::{
-    widget::{Either, Flex, Label, Split, ViewSwitcher},
-    EventCtx, Insets, LifeCycleCtx, Target, UnitPoint, Widget, WidgetExt,
+    widget::{Either, Flex, Split},
+    LifeCycleCtx, Target, Widget, WidgetExt,
 };
 
-use crate::gui::app_state::{AppState, WindowSection};
+use crate::gui::app_state::AppState;
 
 use super::{
-    bucket_management_menu::{self},
-    console_widget::make_console,
-    controller,
-    garbage_clean_menu::{self},
-    menu_button::MenuButton,
-    package_search_menu,
-    precent_height_widget::PercentHeightWidget,
-    separator::make_separator,
+    console::make_console, controller, precent_height::PercentHeightWidget,
+    side_menu::make_menu, window::make_window_picker,
 };
 
 pub fn root_widget() -> impl Widget<AppState> {
-    let split = Split::columns(
-        Flex::column()
-            .with_child(
-                MenuButton::new(
-                    Label::new("search package").with_text_size(druid::theme::TEXT_SIZE_NORMAL),
-                )
-                .on_click(|_, data: &mut AppState, _| {
-                    data.cur_window = WindowSection::PackageSearch
-                })
-                .align_left()
-                .padding(Insets::uniform_xy(8.0, 0.0)),
-            )
-            .with_child(make_separator())
-            .with_child(
-                Label::new("bucket management")
-                    .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
-                    .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
-                        ctx.submit_command(controller::UPDATE_BUCKETS.to(Target::Global));
-                        data.cur_window = WindowSection::BucketManagement;
-                    })
-                    .align_left()
-                    .padding(Insets::uniform_xy(8.0, 0.0)),
-            )
-            .with_child(make_separator())
-            .with_child(
-                Label::new("garbage clean")
-                    .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
-                    .on_click(|_, data: &mut AppState, _| {
-                        data.cur_window = WindowSection::GarbageClean;
-                    })
-                    .align_left()
-                    .padding(Insets::uniform_xy(8.0, 0.0)),
-            )
-            .align_horizontal(UnitPoint::LEFT)
-            .align_vertical(UnitPoint::TOP)
-            .padding(Insets::new(0.0, 15.0, 0.0, 0.0)),
-        ViewSwitcher::new(
-            |data: &AppState, _| data.cur_window.clone(),
-            |section: &WindowSection, _, _| match section {
-                WindowSection::PackageSearch => {
-                    Box::new(package_search_menu::make_package_search())
-                }
-                WindowSection::BucketManagement => {
-                    Box::new(bucket_management_menu::make_bucket_management())
-                }
-                WindowSection::GarbageClean => Box::new(garbage_clean_menu::make_garbage_clean()),
-            },
-        )
-        .padding(Insets::uniform_xy(5.0, 15.0)),
-    )
-    .solid_bar(true)
-    .split_point(0.3)
-    .bar_size(3.0);
+    let split = Split::columns(make_menu(), make_window_picker())
+        .solid_bar(true)
+        .split_point(0.3)
+        .bar_size(3.0);
 
     Flex::column()
         .with_flex_child(split, 1.0)
         .with_child(Either::new(
-            |data: &AppState, _| data.console_buff.log_buffer.get_contents().is_empty(),
+            |data: &AppState, _| {
+                data.console_buff
+                    .log_buffer
+                    .get_contents()
+                    .is_empty()
+            },
             Flex::column(),
             PercentHeightWidget::new(make_console().lens(AppState::console_buff), 0.25),
         ))

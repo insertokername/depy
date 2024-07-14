@@ -22,7 +22,10 @@ pub struct Package {
 }
 
 impl PartialEq for Package {
-    fn eq(&self, other: &Package) -> bool {
+    fn eq(
+        &self,
+        other: &Package,
+    ) -> bool {
         self.bucket_name.to_lowercase() == other.bucket_name.to_lowercase()
             && self.name.to_lowercase() == other.name.to_lowercase()
     }
@@ -31,19 +34,25 @@ impl PartialEq for Package {
 impl Eq for Package {}
 
 impl PartialOrd for Package {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(
+        &self,
+        other: &Self,
+    ) -> Option<std::cmp::Ordering> {
         Some(self.name.cmp(&other.name))
     }
 }
 
 impl Ord for Package {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(
+        &self,
+        other: &Self,
+    ) -> std::cmp::Ordering {
         self.name.cmp(&other.name)
     }
 }
 impl Package {
     pub fn single_package_from_json(
-        package_json: &serde_json::Value,
+        package_json: &serde_json::Value
     ) -> Result<Package, PackageError> {
         let package_obj = package_json
             .as_object()
@@ -121,7 +130,7 @@ impl Package {
     }
 
     pub fn multiple_packages_from_json(
-        json: &serde_json::Value,
+        json: &serde_json::Value
     ) -> Result<Vec<Package>, Box<dyn std::error::Error>> {
         if let Some(out) = json.as_array() {
             let temp = out
@@ -136,7 +145,7 @@ impl Package {
     }
 
     pub fn save_packages_to_json(
-        packages: &Vec<Package>,
+        packages: &Vec<Package>
     ) -> Result<(), Box<dyn std::error::Error>> {
         let str_package = serde_json::to_string_pretty(packages).unwrap();
         std::fs::write("./depy.json", str_package).unwrap();

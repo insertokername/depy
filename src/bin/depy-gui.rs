@@ -16,7 +16,12 @@ fn main() {
 
     let initial_state = gui::app_state::AppState::default();
 
-    let pipe = Target::Pipe(Box::new(initial_state.console_buff.log_buffer.clone_arc()));
+    let pipe = Target::Pipe(Box::new(
+        initial_state
+            .console_buff
+            .log_buffer
+            .clone_arc(),
+    ));
 
     env_logger::Builder::new()
         .filter_level(if args.verbose {

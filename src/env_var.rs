@@ -7,13 +7,16 @@ pub struct EnvVar {
 }
 
 impl EnvVar {
-    pub fn new(name: String, value: String) -> EnvVar {
+    pub fn new(
+        name: String,
+        value: String,
+    ) -> EnvVar {
         EnvVar { name, value }
     }
 
     /// Transforms a serde val into a vec of environment variables
     pub fn from_value(
-        value: &serde_json::Value,
+        value: &serde_json::Value
     ) -> Result<Vec<EnvVar>, parse_json::ParseJsonError> {
         let mut env_var_iter = if let Some(out_as_obj) = value.as_object() {
             out_as_obj

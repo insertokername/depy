@@ -1,10 +1,7 @@
-pub mod bucket_management_menu;
-pub mod console_widget;
+pub mod console;
 pub mod controller;
-pub mod garbage_clean_menu;
-pub mod menu_button;
-pub mod package_search_menu;
-pub mod package_widget;
-pub mod precent_height_widget;
+pub mod package;
+pub mod precent_height;
 pub mod root_widget;
-pub mod separator;
+pub mod side_menu;
+pub mod window;

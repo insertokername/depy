@@ -23,7 +23,13 @@ impl ConsoleScroll {
 }
 
 impl Widget<LogBufferState> for ConsoleScroll {
-    fn event(&mut self, ctx: &mut EventCtx, event: &Event, data: &mut LogBufferState, env: &Env) {
+    fn event(
+        &mut self,
+        ctx: &mut EventCtx,
+        event: &Event,
+        data: &mut LogBufferState,
+        env: &Env,
+    ) {
         match event {
             Event::Command(cmd) => {
                 if let Some(()) = cmd.get(SCROLL_BOTTOM) {
@@ -38,7 +44,8 @@ impl Widget<LogBufferState> for ConsoleScroll {
             }
             Event::AnimFrame(_) => {
                 if data.is_bottom {
-                    self.child.scroll_by(ctx, (INFINITY, INFINITY).into());
+                    self.child
+                        .scroll_by(ctx, (INFINITY, INFINITY).into());
                     ctx.submit_command(RELEASE_SCROLL.to(Target::Global));
                 }
                 ctx.request_paint();
@@ -56,7 +63,8 @@ impl Widget<LogBufferState> for ConsoleScroll {
         data: &LogBufferState,
         env: &Env,
     ) {
-        self.child.lifecycle(ctx, event, data, env);
+        self.child
+            .lifecycle(ctx, event, data, env);
     }
 
     fn update(
@@ -66,10 +74,14 @@ impl Widget<LogBufferState> for ConsoleScroll {
         data: &LogBufferState,
         env: &Env,
     ) {
-        if !old_data.log_buffer.same(&data.log_buffer) {
+        if !old_data
+            .log_buffer
+            .same(&data.log_buffer)
+        {
             ctx.submit_command(SCROLL_BOTTOM.to(Target::Global));
         }
-        self.child.update(ctx, old_data, data, env);
+        self.child
+            .update(ctx, old_data, data, env);
     }
 
     fn layout(
@@ -82,7 +94,12 @@ impl Widget<LogBufferState> for ConsoleScroll {
         self.child.layout(ctx, bc, data, env)
     }
 
-    fn paint(&mut self, ctx: &mut PaintCtx, data: &LogBufferState, env: &Env) {
+    fn paint(
+        &mut self,
+        ctx: &mut PaintCtx,
+        data: &LogBufferState,
+        env: &Env,
+    ) {
         self.child.paint(ctx, data, env);
     }
 }
@@ -91,11 +108,16 @@ pub fn make_console() -> impl Widget<LogBufferState> {
     Container::new(
         Flex::column()
             .with_child(Either::new(
-                |data: &LogBufferState, _| data.log_buffer.get_contents().is_empty(),
+                |data: &LogBufferState, _| {
+                    data.log_buffer
+                        .get_contents()
+                        .is_empty()
+                },
                 Flex::column(),
                 Button::new("X")
                     .on_click(|_, data: &mut LogBufferState, _| {
-                        data.log_buffer.mutate_contents(|content| content.clear())
+                        data.log_buffer
+                            .mutate_contents(|content| content.clear())
                     })
                     .padding(Insets::uniform(2.1))
                     .align_right(),

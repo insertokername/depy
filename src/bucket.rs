@@ -24,7 +24,10 @@ pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Adds a bucket to the depy/scoop instalation
-pub fn add_bucket(bucket_url: &str, bucket_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn add_bucket(
+    bucket_url: &str,
+    bucket_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Adding bucket: '{bucket_name}' ...");
     let cmd_output = match shell::run_cmd_in_depy_dir(&format!(
         "scoop bucket add {bucket_name} {bucket_url}"
@@ -80,7 +83,9 @@ fn find_bucket_url(bucket: &std::path::PathBuf) -> Result<String, Box<dyn std::e
         return Err(Box::new(BucketError::BucketUrlError(bucket.to_path_buf())));
     }
 
-    Ok(String::from_utf8(output.stdout)?.trim().to_string())
+    Ok(String::from_utf8(output.stdout)?
+        .trim()
+        .to_string())
 }
 
 /// Return (name, url)
@@ -92,7 +97,10 @@ pub fn list_buckets() -> Result<Vec<(String, String)>, Box<dyn std::error::Error
         .map(|bucket| {
             let bucket = bucket.unwrap();
             (
-                bucket.file_name().to_string_lossy().to_string(),
+                bucket
+                    .file_name()
+                    .to_string_lossy()
+                    .to_string(),
                 find_bucket_url(&bucket.path()).unwrap(),
             )
         })
@@ -131,7 +139,7 @@ fn query_single_bucket(
     let manifests = match manifests {
         Ok(out) => out,
         Err(err) => {
-            println!("Found inoutid bucket at:{:#?}", bucket);
+            log::error!("Found invalid bucket at:{:#?}", bucket);
             return Err(err.into());
         }
     };

@@ -3,9 +3,7 @@ use druid::{
     Command, EventCtx, Insets, Target, Widget, WidgetExt,
 };
 
-use crate::gui::app_state::AppState;
-
-use super::controller;
+use crate::gui::{app_state::AppState, elements::controller};
 
 fn bucket_list_elem() -> impl Widget<(String, String)> {
     Container::new(

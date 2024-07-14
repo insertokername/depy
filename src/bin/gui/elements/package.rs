@@ -10,7 +10,11 @@ use super::controller;
 
 struct PackageVersionLens;
 impl Lens<InstalledPackageWrapper, String> for PackageVersionLens {
-    fn with<V, F: FnOnce(&String) -> V>(&self, data: &InstalledPackageWrapper, f: F) -> V {
+    fn with<V, F: FnOnce(&String) -> V>(
+        &self,
+        data: &InstalledPackageWrapper,
+        f: F,
+    ) -> V {
         f(&data.package.version)
     }
 

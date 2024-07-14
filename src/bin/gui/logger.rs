@@ -28,7 +28,10 @@ impl LogBuffer {
         String::from_utf8_lossy(log_data).into_owned()
     }
 
-    pub fn mutate_contents(&self, f: impl FnOnce(&mut Vec<u8>)) {
+    pub fn mutate_contents(
+        &self,
+        f: impl FnOnce(&mut Vec<u8>),
+    ) {
         let mut guard = self.inner.lock().unwrap();
         f(&mut guard.get_mut());
     }
@@ -45,7 +48,10 @@ impl Clone for LogBuffer {
 }
 
 impl Write for LogBuffer {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+    fn write(
+        &mut self,
+        buf: &[u8],
+    ) -> std::io::Result<usize> {
         let mut guard = self.inner.lock().unwrap();
         guard.write(buf)
     }
@@ -57,7 +63,10 @@ impl Write for LogBuffer {
 }
 
 impl Data for LogBuffer {
-    fn same(&self, other: &Self) -> bool {
+    fn same(
+        &self,
+        other: &Self,
+    ) -> bool {
         self.get_contents() == other.get_contents()
     }
 }
