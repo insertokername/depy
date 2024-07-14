@@ -10,6 +10,7 @@ use super::{
     console_widget::make_console,
     controller,
     garbage_clean_menu::{self},
+    menu_button::MenuButton,
     package_search_menu,
     precent_height_widget::PercentHeightWidget,
     separator::make_separator,
@@ -19,13 +20,14 @@ pub fn root_widget() -> impl Widget<AppState> {
     let split = Split::columns(
         Flex::column()
             .with_child(
-                Label::new("search package")
-                    .with_text_size(druid::theme::TEXT_SIZE_NORMAL)
-                    .on_click(|_, data: &mut AppState, _| {
-                        data.cur_window = WindowSection::PackageSearch
-                    })
-                    .align_left()
-                    .padding(Insets::uniform_xy(8.0, 0.0)),
+                MenuButton::new(
+                    Label::new("search package").with_text_size(druid::theme::TEXT_SIZE_NORMAL),
+                )
+                .on_click(|_, data: &mut AppState, _| {
+                    data.cur_window = WindowSection::PackageSearch
+                })
+                .align_left()
+                .padding(Insets::uniform_xy(8.0, 0.0)),
             )
             .with_child(make_separator())
             .with_child(
