@@ -1,37 +1,59 @@
-# Depy
+# Depy 
 
-Depy is a dependency manager based on scoop. It automatically installs any program from a collection of over 3000+ packages.
+Depy is a dependency manager based on `scoop`. It automatically installs any program from a collection of over 3000+ packages.
 
 Depy automatically manages and creates virtual environemnts similar to `python -m venv` that help you manage versions of apps cleanly.
+
 
 ![alt text](depy.PNG)
 
 ## Instalation
 
-Open up powershell by searching "powershell" in you windows search bar.
-
-If you already have scoop installed skip to the next set of commands, if you don't just copy paste these and hit enter until all commands are run. If powershell asks you for any sort of confirmation type y:
-```
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-```
-
-If you are on a 32 bit system you need to install [git](https://git-scm.com/downloads) manually. Otherwise just run:
+**If you already have scoop installed** just open up powershell and run:
 
 ```
 scoop install git
-```
-
-After git is installed you just need to run:
-```
 scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
 ```
 
-If you get an error about not finding `VCRUNTIME140.dll` you need to install the visual studio redistributable from [here](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) 
+**If you don't have scoop installed** there are just a couple of steps:
 
-You are done! Just reopen powershell and you can now use the depy command!
+
+- **for 64 bit**
+    First make sure you have [VCRUNTIME](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) 
+
+    And then open powershell and run:
+    ```
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+    scoop install git
+    ```
+    Close and reopen powershell and then run:
+    ```
+    scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
+    ```
+
+- **for 32 bit**:
+    Download [git](https://git-scm.com/downloads), make sure you have [VCRUNTIME](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) 
+    And then open powershell and run:
+    ```
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+    ```
+    Close and reopen powershell and then run:
+    ```
+    scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
+    ```
+
+**Now you're done!**
 
 ## Usage
+
+### Gui
+
+Open a terminal in the folder you wish to make a virtual environment in, run the command `depy-gui` and now the interface will open, you can now search the packages you wish to install. Once you find you pacakge just click on add install. Once you are done with selecting your needed packages just `Install added packages` and you're done!
+
+### Cli
 
 First we need to create a `depy.json` file that will declare all of our desired programs.
 
@@ -39,21 +61,21 @@ First we need to create a `depy.json` file that will declare all of our desired 
 ```
 [
     {
-        "name": "python",
-        "version": "3.11.0",
-        "bucket_url": "main",
-        "bucket_name": "main"
+        "bucket_url": "https://github.com/ScoopInstaller/Main",
+        "bucket_name": "main",
+        "name": "grep",
+        "version": "latest"
     },
     {
-        "name": "firefox",
-        "version": "latest",
-        "bucket_url": "extras",
-        "bucket_name": "extras"
-    }
+        "bucket_url": "https://github.com/ScoopInstaller/Versions",
+        "bucket_name": "versions",
+        "name": "python36",
+        "version": "3.6.8"
+    },
 ]
 ```
 
-In this depy.json file we declared that we need to install python version 3.11.0 from the `main` bucket and firefox the latest version from the `extras` bucket. Buckets are just collections of packages, the `main`, `extras` and `versions` buckets are official buckets provided by scoop. Usually you can find a lot of programs in the `main` bucket but for any other programs there is a high chance that they are in the `extras` bucket. If you want to you can provide your own bucket. More information about depy.json format [here](#depyjson)
+In this depy.json file we declared that we need to install `grep` from the `main` bucket, by using the `latest` tag it will always be set to the latest version available when updating with depy , and python version 3.6.8 from the `versions` bucket. Buckets are explained [here](#buckets).
 
 After we define our `depy.json` we can just run:
 ```
@@ -73,6 +95,15 @@ Now all of our apps will be available to us and `(CURENTLY IN DEV SHELL)` should
 
 This application does not cause conficts with existing scoop installed programs.
 
+## Buckets
+
+Buckets are repositories that contain a number of packages. Each bucket has its purpose:
+- main: contains most cli applications and frameworks and etc
+- extras: contains mostly gui apps and apps that don't fit the main bucket criteria
+- versions: contains older versions of packages that have changed their install system and require special instructions compared to the newer packages.
+
+You can also make your own [custom buckets](#adding-a-custom-bucket)
+
 ## depy.json
 
 The format of a depy.json looks like this:
@@ -81,42 +112,53 @@ The format of a depy.json looks like this:
 [   //an array of "packages"
     
     {   //each package is defined by:
-        "name":"generic_package",   //its name
-        "version":"1.0",            //its version
-        "bucket_url":"main"         //the github repository in which it is stored
-        "bucket_name":"main"        //an identifier for that repository
+        "bucket_url":"https://github.com/ScoopInstaller/Main"   //the github repository in which it is stored
+        "bucket_name":"main"                                    //an identifier for that bucket
+        "name":"generic_package",                               //the package name
+        "version":"1.0",                                        //the package version
     }
 ]
 ```
 
 - The name and version section are self explanatory. 
-- The `bucket_url` represents the repository in which to search for the package in. There are 3 built in bucket url shortcuts `main`, `extras` and `versions` these are official scoop repositories and are the most used when working with scoop. The rule of thumb is that you will either find the package you desire in the `main` repository and if not in the `extras` repository. The `versions` repository is for much older versions of programs like `python3.9` or others. 
-- The `bucket_name` represents an arbitrary label to that bucket. This is used so that depy doesn't have to add buckets for each separate program. **It's very important that you name the main bucket `main` and no other bucket `main`.** This is because the main bucket is added by default for performance reasons and any conflicts with that will result in a crash.
+- The `bucket_url` represents the repository in which to search for the package in. 
+- The `bucket_name` represents a label for that bucket.
+- The `versions` can be set to `latest` so that every time you run `depy` or update via gui, it will automatically get the latest versions available in scoop.
 
-## Adding a costume bucket:
+## Adding a custom bucket:
 
 First you should read a bit about scoop buckets from [here](https://github.com/ScoopInstaller/Scoop/wiki/Buckets). The proceed to use the [bucket template repo](https://github.com/ScoopInstaller/BucketTemplate) and **make sure your bucket directory is on the master branch.** After that you can just put the link to you repository in the `bucket_url` argument of the program that requires it (something like this: `"bucket_url":"https://github.com/ScoopInstaller/Extras"`)
-
-## No initialization option
-
-This is an option flag that doesn't update any buckets before running the installer. This is way faster and recomended to be used if you are planning on rebuilding with depy a bunch of times and you are not chaning anything about your buckets. **ANY TIME YOU CHANGE ANYTHING ABOUT A BUCKET YOU MUST RUN DEPY AT LEAST ONCE WITHOUT THIS SETTING**
 
 ## Compilation
 
 **Compilation dependencies:**
-- only rust 😁
+- only rust
 
-First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the project in your preferred code editor and run `cargo build`. The project will be compiled under target/Debug/depy.exe
+First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the project in your preferred code editor and run `cargo build`. The project will be compiled under `target/Debug/depy.exe` and `target/Debug/depy-gui.exe`.,
+
+## Garbage clean 
+
+The garbage clean command uninstalls all packages from the cache, freeing up some space. 
+
+**Cli**
+```
+depy -g
+```
+**Gui**
+In the `garbage clean` menu, hit the `Cleanup Packages` button 
 
 ## Uninstalling
 
 Uninstalling is done in two steps:
 
-First:
+**Cli:**
 ```
 depy -d
 ```
-This uninstalls all apps under `%userprofile%/depy/scoop` and can also be used as a cleanup tool to cleanup once in a while.
+**Gui:**
+In the `garbage clean` menu hit the `Uninstall Depy` button.
+
+This uninstalls all apps under `%userprofile%/depy/scoop`.
 
 Second:
 ```
@@ -125,4 +167,4 @@ scoop uninstall depy
 This just uninstalls the exe itself which is very small.
 
 ## Resources used
-While making this project I mainly had to read the [scoop wiki](https://github.com/ScoopInstaller/Main/tree/) and some random crate documentations like [clap](https://docs.rs/clap/latest/clap/) and [env_logger](https://docs.rs/env_logger/latest/env_logger/)
+While making this project I mainly had to read the [scoop wiki](https://github.com/ScoopInstaller/Main/tree/) and some crate documentations like for example  [druid](https://docs.rs/druid/latest/druid/) 
