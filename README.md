@@ -1,6 +1,6 @@
-# Depy 
+<h1 align="center">Depy</h1>
 
-Depy is a dependency manager based on `scoop`. It automatically installs any program from a collection of over 3000+ packages.
+Depy is a dependency manager based on scoop. It automatically installs any program from a collection of over 3000+ packages.
 
 Depy automatically manages and creates virtual environemnts similar to `python -m venv` that help you manage versions of apps cleanly.
 
