@@ -57,7 +57,7 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     dir::init_depy_dir();
 
     let cmd_output = match run_cmd_in_depy_dir(
-        "scoop bucket add main & scoop update & scoop config scoop_branch develop",
+        "scoop bucket add main & scoop bucket add versions & scoop bucket add extras & scoop update & scoop config scoop_branch develop",
     ) {
         Ok(cmd_output) => cmd_output,
         Err(err) => {
