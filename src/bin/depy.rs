@@ -40,11 +40,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .search
             .clone()
             .unwrap_or_else(|| args.deep_search.clone().unwrap());
+        let pkgs = bucket::query_local_buckets(&query, args.deep_search.is_some()).map_err(|err|{log::error!("Got an error while searchiing for packages: {}\n\n",err.to_string());err})?;
         println!("query: '{query}'");
         println!(
-            "Found following packages: {:#?}",
-            bucket::query_local_buckets(&query, args.deep_search.is_some()).unwrap()
+            "Found following packages:\n",
         );
+        for pkg in pkgs{
+            println!("Name: {}\nFrom bucket: {}\nBucket url: {}\n\n", pkg.name, pkg.bucket_name, pkg.bucket_url)
+        }
         return Ok(());
     }
 

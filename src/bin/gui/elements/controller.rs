@@ -183,7 +183,9 @@ pub fn install_packages(
         .into_iter()
         .collect::<Vec<package::Package>>();
 
-    package::Package::save_packages_to_json(&package_vec).unwrap();
+    if let Err(err) = package::Package::save_packages_to_json(&package_vec){
+        log::error!("Got an error while trying to save packages to depy.json!\nError:{}", err.to_string());
+    };
 
     let sink = ctx.get_external_handle();
     thread::spawn(move || {

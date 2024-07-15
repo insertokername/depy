@@ -4,26 +4,34 @@ use crate::{dir, manifest};
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum ShellError {
-    #[error("Error: Couldn't execute a command!")]
-    ExecutionError,
-    #[error("Error: Couldn't update the scoop instalation inside depy!")]
-    UpdateError,
-    #[error("Error: Couldn't install an application!")]
-    InstallError,
+    #[error("Error: Couldn't execute a command!\nGot error: {0}")]
+    ExecutionError(String),
+    #[error("Error: Couldn't initialize depy!\n Got error {0}\n\nPlease make sure scoop is installed on your system!")]
+    InitializeError(String),
+    #[error("Error: Couldn't update the scoop instalation inside depy!\nGot scoop output {0}\nMake sure scoop is installed and you are connected to the internet!")]
+    UpdateError(String),
+    #[error("Error: Couldn't install an application!\n{0}\n\nFailed to install {1}, scoop error above ^^^^^^^^^^^^^^^^\n\nMake sure all required buckets are installed!")]
+    InstallError(String, String),
     #[error("Error: Couldn't clean buckets!")]
     CleanBucketError,
     #[error("Error: Couldn't add a bucket!")]
     AddBucketError,
     #[error("Error: Couldn't remove a bucket!")]
     RemoveBucketError,
-    #[error("Error: Couldn't create a file or folder!")]
-    CreateError,
-    #[error("Error: Couldn't delete a file or folder!")]
-    DeleteError,
-    #[error("Error: Couldn't write to a file!")]
-    WriteError,
-    #[error("Error: Couldn't uninstall a package!")]
-    PackageUninstallError,
+    #[error("Error: Couldn't create .depyenv folder!\nGot error{0}")]
+    CreateEnvError(String),
+    #[error("Error: Couldn't delete a file or folder!\nGot error{0}")]
+    DeleteError(String),
+    #[error("Error: Couldn't write to a file!\nGot error{0}")]
+    WriteError(String),
+    #[error("Error: Couldn't uninstall {0}, error:{1}\nIf you want to try force uninstall run cli with the -g/-d and the -f flag")]
+    PackageUninstallError(String, String),
+    #[error("Error: Couldn't cleanup a packages!")]
+    CleanupError,
+    #[error("Error: Couldn't make shims for{0}!\nGot error:{1}")]
+    MakeShimError(String, String),
+    #[error("Error: Couldn't copy shims!\nGot error:{0}")]
+    CopyShimError(String),
 }
 
 /// runs generic command inside the depy/scoop folder
@@ -36,8 +44,7 @@ pub fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Erro
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        log::error!("Command failed with error: {stderr}");
-        return Err(Box::new(ShellError::ExecutionError));
+        return Err(Box::new(ShellError::ExecutionError(stderr.to_string())));
     }
 
     let stdout = String::from_utf8(output.stdout)?;
@@ -54,16 +61,12 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     ) {
         Ok(cmd_output) => cmd_output,
         Err(err) => {
-            log::error!(
-                "Failed to run update command! Please make sure scoop is installed on your system!"
-            );
-            return Err(err);
+            return Err(Box::new(ShellError::InitializeError(err.to_string())));
         }
     };
 
     if !cmd_output.contains("Scoop was updated successfully!") {
-        log::error!("Couldn't update scoop! Command output: {cmd_output}");
-        return Err(Box::new(ShellError::UpdateError));
+        return Err(Box::new(ShellError::UpdateError(cmd_output)));
     }
 
     dir::cleanup_shims()?;
@@ -101,7 +104,7 @@ fn attempt_install(
     let cmd_output = match cmd_result {
         Ok(out) => out,
         Err(err) => {
-            log::error!("Failed to install {}, error:{err}", name);
+            log::error!("Failed to install {}, error:{}", name, err.to_string());
             return Err(err);
         }
     };
@@ -111,12 +114,10 @@ fn attempt_install(
             && (line.contains("was installed successfully!")
                 || line.contains("is already installed"))
     }) {
-        log::error!("Scoop errored out on:\n{cmd_output}");
-        log::error!(
-            "\n\nFailed to install {}, scoop error above ^^^^^^^^^^^^^^^^\n\n",
-            name
-        );
-        return Err(Box::new(ShellError::InstallError));
+        return Err(Box::new(ShellError::InstallError(
+            cmd_output,
+            name.to_string(),
+        )));
     }
 
     Ok(cmd_output)
@@ -136,7 +137,13 @@ pub fn install_cleanly(manifest: &manifest::Manifest) -> Result<(), Box<dyn std:
             log::debug!(
                 "Couldn't install from urlZ!!\nGot error: {first_err}\nAttempting local install..."
             );
-            attempt_install(&manifest.name, &manifest.name, &manifest.version).map_err(|err| {log::error!("Couldn't install app from local!\nGot error {err}\n\nWhile trying to install package from url got error:{first_err}"); ShellError::InstallError})?
+            match attempt_install(&manifest.name, &manifest.name, &manifest.version) {
+                Ok(ok) => ok,
+                Err(err) => {
+                    log::error!("Couldn't install app from local!\nGot error {err}\n\nWhile trying to install package from url got error:{first_err}");
+                    return Err(err);
+                }
+            }
         }
     };
 
@@ -155,13 +162,11 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     if depyvenv.exists() {
         if depyvenv.is_file() {
             if let Err(err) = std::fs::remove_file(depyvenv) {
-                log::error!("Couldn't remove .depyvenv!\n Got error {err}");
-                return Err(Box::new(ShellError::DeleteError));
+                return Err(Box::new(ShellError::DeleteError(err.to_string())));
             };
         } else {
             if let Err(err) = std::fs::remove_dir_all(depyvenv) {
-                log::error!("Couldn't remove .depyvenv!\n Got error {err}");
-                return Err(Box::new(ShellError::DeleteError));
+                return Err(Box::new(ShellError::DeleteError(err.to_string())));
             };
         }
     };
@@ -201,8 +206,10 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
         ) {
             Ok(out) => out,
             Err(err) => {
-                log::error!("Failed to make shims for {}, error:{err}", &man.name);
-                return Err(err);
+            return Err(Box::new(ShellError::MakeShimError(
+                    man.name,
+                    err.to_string(),
+                )));
             }
         };
         log::debug!("Shim making output for {}:\n {cmd_out}", &man.name);
@@ -223,8 +230,7 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     }
 
     if let Err(err) = std::fs::create_dir(depyvenv) {
-        log::error!("Couldn't create .depyvenv!\nGot error: {err}");
-        return Err(Box::new(ShellError::CreateError));
+        return Err(Box::new(ShellError::CreateEnvError(err.to_string())));
     };
 
     // move every content of the shim folder to .localshims
@@ -239,8 +245,7 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     let local_shims = "./.depyvenv/localshims";
 
     if let Err(err) = fs_extra::dir::copy(source_shims, local_shims, &options) {
-        log::error!("Failed to copy shims to {local_shims}\nGot error: {err}");
-        return Err(Box::new(err));
+        return Err(Box::new(ShellError::CopyShimError(err.to_string())));
     };
 
     let path_local_shims = std::path::Path::new(local_shims);
@@ -262,19 +267,16 @@ pub fn make_devshell(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn s
     ps_env_vars += &["$env:PATH = \"", &paths, "\" + $env:PATH\n"].concat();
 
     if let Err(err) = std::fs::write(empty_devshell_loc, "") {
-        log::error!("Couldn't write devshell!\nGot error:{err}");
         std::fs::remove_dir_all(&depyvenv)?; //we should have read/write privileges of that folder since we created it a few seconds ago
-        return Err(Box::new(ShellError::WriteError));
+        return Err(Box::new(ShellError::WriteError(err.to_string())));
     };
     if let Err(err) = std::fs::write(ps_devshell_loc, &ps_env_vars) {
-        log::error!("Couldn't write devshell!\nGot error:{err}");
         std::fs::remove_dir_all(&depyvenv)?;
-        return Err(Box::new(ShellError::WriteError));
+        return Err(Box::new(ShellError::WriteError(err.to_string())));
     };
     if let Err(err) = std::fs::write(bat_devshell_loc, &bat_env_vars) {
-        log::error!("Couldn't write devshell!\nGot error:{err}");
         std::fs::remove_dir_all(&depyvenv)?;
-        return Err(Box::new(ShellError::WriteError));
+        return Err(Box::new(ShellError::WriteError(err.to_string())));
     };
 
     log::info!("Successfully created venv dir!");
@@ -344,8 +346,7 @@ pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::err
                     "\nERROR: Couldn't force remove package: {package}\n"
                 ));
             } else {
-                log::error!("Failed to uninstall {package}, error:{cmd_output}\nIf you want to try force uninstall set -f flag\n\n");
-                return Err(Box::new(ShellError::PackageUninstallError));
+                return Err(Box::new(ShellError::PackageUninstallError(package, cmd_output)));
             }
         }
     }
@@ -398,7 +399,7 @@ pub fn cleanup_path() -> Result<(), Box<dyn std::error::Error>> {
     {
         log::error!("Scoop errored out on:\n{cmd_output}");
         log::error!("\n\nFailed to cleanup paths, output above ^^^^^^^^^^^^^^^^\n\n");
-        return Err(Box::new(ShellError::InstallError));
+        return Err(Box::new(ShellError::CleanupError));
     }
 
     log::info!("Cleaned up successfuly!");

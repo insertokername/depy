@@ -1,16 +1,5 @@
 TODO:
-  delete shortcuts
-    ca sa facem asta trb sa intram in folderu de shortcut-uri care o sa fie tot timpu iin %appdata%
-
   pacakge search:
     show better results in cli -s -S
 
-  fix the use statements to be consistesnt
-
   update README
-
-  remove all .unwrap and make all errors use .map_err insted of the "if let"
-
-  documentation for new functions 
-
-  testing?
