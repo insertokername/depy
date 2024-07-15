@@ -1,4 +1,4 @@
-use std::{ffi::OsString, path::PathBuf};
+use std::{ffi::OsString, os::windows::process::CommandExt, path::PathBuf};
 
 use crate::{dir, package, parse_json, shell};
 use druid::im::Vector;
@@ -75,6 +75,7 @@ fn find_bucket_url(bucket: &std::path::PathBuf) -> Result<String, Box<dyn std::e
             "git -C {} config remote.origin.url",
             bucket.to_str().unwrap()
         ))
+        .creation_flags(0x08000000)
         .output()?;
 
     if !output.status.success() {

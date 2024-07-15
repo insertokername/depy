@@ -1,3 +1,5 @@
+use std::os::windows::process::CommandExt;
+
 use path_absolutize::Absolutize;
 
 use crate::{dir, manifest};
@@ -40,6 +42,7 @@ pub fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Erro
         .arg("/C")
         .arg(cmd)
         .env("SCOOP", dir::get_depy_dir_location())
+        .creation_flags(0x08000000) 
         .output()?;
 
     if !output.status.success() {
