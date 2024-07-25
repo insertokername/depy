@@ -1,8 +1,6 @@
 pub mod args;
-pub mod bucket;
 pub mod dir;
 pub mod env_var;
-pub mod installer;
 pub mod manifest;
 pub mod package;
 pub mod parse_json;

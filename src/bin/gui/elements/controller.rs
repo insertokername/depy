@@ -1,7 +1,6 @@
 use std::{panic::catch_unwind, thread};
 
 use depy::{
-    bucket, installer,
     package::{self, Package},
     parse_json, shell,
 };
@@ -114,7 +113,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 remove_bucket(data, ctx);
             }
             if let Some(()) = cmd.get(UPDATE_BUCKETS) {
-                data.bucket_list = bucket::list_buckets().unwrap().into();
+                data.bucket_list = shell::bucket::list_buckets().unwrap().into();
             }
             if let Some(()) = cmd.get(INITIALIZE) {
                 if std::path::Path::new("./depy.json").exists() {
@@ -189,7 +188,7 @@ pub fn install_packages(
 
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
-        let result = catch_unwind(|| installer::install(package_vec));
+        let result = catch_unwind(|| shell::install::install(package_vec));
         let flat_result = flatten_err(result, |panic_message| {
             return Box::new(ControllerError::InstallError(format!("{}", panic_message)));
         });
@@ -210,7 +209,7 @@ fn remove_bucket(
     let sink = ctx.get_external_handle();
 
     thread::spawn(move || {
-        let result = catch_unwind(|| bucket::remove_bucket(&bucket_name));
+        let result = catch_unwind(|| shell::bucket::remove_bucket(&bucket_name));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::BucketRemoveError(format!(
                 "{}",
@@ -237,7 +236,7 @@ fn add_bucket(
     let sink = ctx.get_external_handle();
 
     thread::spawn(move || {
-        let result = catch_unwind(|| bucket::add_bucket(&bucket_url, &bucket_name));
+        let result = catch_unwind(|| shell::bucket::add_bucket(&bucket_url, &bucket_name));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::BucketAddError(format!(
                 "{}",
@@ -265,7 +264,7 @@ pub fn find_packages_async(
     let search_term = data.search_term.clone();
     let installed_packages = data.installed_packages.clone();
     thread::spawn(move || {
-        let result = catch_unwind(|| bucket::query_local_buckets(&search_term, deep_search));
+        let result = catch_unwind(|| shell::bucket::query_all_buckets(&search_term, deep_search));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::ThreadSearchError(panic_message))
         });
@@ -293,7 +292,7 @@ pub fn find_packages_async(
 fn init_depy_async(ctx: &mut EventCtx) {
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
-        let result = catch_unwind(|| shell::init_depy());
+        let result = catch_unwind(|| shell::install::init_depy());
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::InitDepyError(panic_message))
         });
@@ -310,7 +309,7 @@ fn init_depy_async(ctx: &mut EventCtx) {
 
 fn uninstall_depy_async(force_uninstall: bool) {
     thread::spawn(move || {
-        let result = catch_unwind(|| shell::uninstall_depy(force_uninstall));
+        let result = catch_unwind(|| shell::cleanup::uninstall_depy(force_uninstall));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::UninstallErrror(panic_message))
         });
@@ -333,7 +332,7 @@ fn clean_depy_async(
 ) {
     let sink = ctx.get_external_handle();
     thread::spawn(move || {
-        let result = catch_unwind(|| shell::clean_depy_packages(force_uninstall));
+        let result = catch_unwind(|| shell::cleanup::clean_depy_packages(force_uninstall));
         let flat_result = flatten_err(result, |panic_message| {
             Box::new(ControllerError::CleanupError(panic_message))
         });

@@ -16,12 +16,7 @@ fn main() {
 
     let initial_state = gui::app_state::AppState::default();
 
-    let pipe = Target::Pipe(Box::new(
-        initial_state
-            .console_buff
-            .log_buffer
-            .clone_arc(),
-    ));
+    let pipe = Target::Pipe(Box::new(initial_state.console_buff.log_buffer.clone_arc()));
 
     env_logger::Builder::new()
         .filter_level(if args.verbose {
@@ -39,7 +34,7 @@ fn main() {
         .launch(initial_state)
         .expect("Failed to launch application");
 
-    if let Err(err) = depy::shell::cleanup_path() {
+    if let Err(err) = depy::shell::cleanup::cleanup_path() {
         let temp = AppState::default();
 
         AppLauncher::with_window(

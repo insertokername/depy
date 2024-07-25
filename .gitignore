@@ -4,3 +4,4 @@ src/example.json
 .vscode
 depy.json
 count_lines.ps1
+old*

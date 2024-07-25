@@ -1,4 +1,4 @@
-use depy::{bucket, installer, parse_json, shell};
+use depy::{parse_json, shell};
 
 use clap::Parser;
 
@@ -16,22 +16,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     if args.only_initialize {
-        shell::init_depy()?;
+        shell::install::init_depy()?;
         return Ok(());
     }
 
     if args.delete {
-        shell::uninstall_depy(args.force_uninstall)?;
+        shell::cleanup::uninstall_depy(args.force_uninstall)?;
         return Ok(());
     }
 
     if args.garbage_clean {
-        shell::clean_depy_packages(args.force_uninstall)?;
+        shell::cleanup::clean_depy_packages(args.force_uninstall)?;
         return Ok(());
     }
 
     if args.path_clean {
-        shell::cleanup_path()?;
+        shell::cleanup::cleanup_path()?;
         return Ok(());
     }
 
@@ -40,24 +40,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .search
             .clone()
             .unwrap_or_else(|| args.deep_search.clone().unwrap());
-        let pkgs = bucket::query_local_buckets(&query, args.deep_search.is_some()).map_err(|err|{log::error!("Got an error while searchiing for packages: {}\n\n",err.to_string());err})?;
+        let pkgs =
+            shell::bucket::query_all_buckets(&query, args.deep_search.is_some()).map_err(|err| {
+                log::error!(
+                    "Got an error while searchiing for packages: {}\n\n",
+                    err.to_string()
+                );
+                err
+            })?;
         println!("query: '{query}'");
-        println!(
-            "Found following packages:\n",
-        );
-        for pkg in pkgs{
-            println!("Name: {}\nFrom bucket: {}\nBucket url: {}\n\n", pkg.name, pkg.bucket_name, pkg.bucket_url)
+        println!("Found following packages:\n",);
+        for pkg in pkgs {
+            println!(
+                "Name: {}\nFrom bucket: {}\nBucket url: {}\n\n",
+                pkg.name, pkg.bucket_name, pkg.bucket_url
+            )
         }
         return Ok(());
     }
 
-    shell::init_depy()?;
+    shell::install::init_depy()?;
 
     let json_value = parse_json::read_json_file("./depy.json")?;
 
     let packages = depy::package::Package::multiple_packages_from_json(&json_value)?;
 
-    if let Err(err) = installer::install(packages) {
+    if let Err(err) = shell::install::install(packages) {
         log::error!("Error occured while installing from depy file!");
         return Err(err);
     }

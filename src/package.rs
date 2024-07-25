@@ -1,6 +1,7 @@
 use druid::{Data, Lens};
 use serde::Serialize;
 
+
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum PackageError {
     #[error("Error: Invalid bucket_url format!")]
@@ -11,6 +12,8 @@ pub enum PackageError {
     NameFormatError,
     #[error("Error: Invalid version format!")]
     VersionFormatError,
+    #[error("Error: Invalid depy.json format!")]
+    PacakgeFormatError,
 }
 
 #[derive(Data, Clone, Debug, Serialize, Lens)]
@@ -140,7 +143,7 @@ impl Package {
             Ok(temp?)
         } else {
             log::error!("Invalid install json, expected the installer to be an array of packages!");
-            return Err(Box::new(crate::installer::InstallerError::JsonFormatError));
+            return Err(Box::new(PackageError::PacakgeFormatError));
         }
     }
 
