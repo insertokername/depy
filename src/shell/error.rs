@@ -23,7 +23,7 @@ pub enum ShellError {
 
     #[error("Error: Couldn't read from {0}!\nGot error{1}")]
     ReadError(String, String),
-    #[error("Error: Couldn't uninstall {0}, error:{1}\nIf you want to try force uninstall run cli with the -g/-d and the -f flag")]
+    #[error("Error: Couldn't uninstall {0}, error:{1}\nIf you want to try to force uninstall click the force uninstall button or run cli with the -g/-d and the -f flag")]
     PackageUninstallError(String, String),
     #[error("Error: Couldn't cleanup a packages!\nScoop errored out on:\n{0}\n\nFailed to cleanup paths, output above ^^^^^^^^^^^^^^^^")]
     CleanupError(String),
