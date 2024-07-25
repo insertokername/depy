@@ -1,9 +1,10 @@
+use clap::Parser;
 use depy::{parse_json, shell};
 
-use clap::Parser;
+mod args;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = depy::args::ArgsCli::parse();
+    let args = args::ArgsCli::parse();
 
     env_logger::Builder::new()
         .filter_level(if args.verbose {
@@ -40,14 +41,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .search
             .clone()
             .unwrap_or_else(|| args.deep_search.clone().unwrap());
-        let pkgs =
-            shell::bucket::query_all_buckets(&query, args.deep_search.is_some()).map_err(|err| {
+        let pkgs = shell::bucket::query_all_buckets(&query, args.deep_search.is_some()).map_err(
+            |err| {
                 log::error!(
                     "Got an error while searchiing for packages: {}\n\n",
                     err.to_string()
                 );
                 err
-            })?;
+            },
+        )?;
         println!("query: '{query}'");
         println!("Found following packages:\n",);
         for pkg in pkgs {
