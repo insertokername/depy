@@ -20,7 +20,7 @@ fn generate_install_script(indentifier: &str, version: &str) -> String {
 /// Updates scoop and creates depy directory if doesn't allready exist
 pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Initializing depy directory...");
-    dir::init_depy_dir();
+    dir::init_depy_dir()?;
 
     let cmd_output = match run_cmd_in_depy_dir(
         "scoop bucket add main & scoop bucket add versions & scoop bucket add extras & scoop update & scoop config scoop_branch develop",
