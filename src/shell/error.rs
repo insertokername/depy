@@ -41,4 +41,9 @@ pub enum ShellError {
 
     #[error("Error: Invalid response recieved!\nGot error from github:{0}")]
     ResponseError(String),
+
+    #[error("Error: %USERPROFILE% environment variable not found")]
+    MissingUserProfileError,
+    #[error("Error: Couldn't create a folder: {0}!\nGot Error{1}")]
+    CreateFolderError(String, String),
 }

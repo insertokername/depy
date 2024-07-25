@@ -1,6 +1,6 @@
 use crate::{
-    dir, parsing,
-    shell::{error::ShellError, run_cmd_in_depy_dir},
+    parsing,
+    shell::{dir, error::ShellError, run_cmd_in_depy_dir},
 };
 use path_absolutize::Absolutize;
 
@@ -32,7 +32,7 @@ pub fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::e
     for man in manifests {
         for path in man.added_paths {
             paths += &[
-                &dir::get_version_location(&man.name, &man.version),
+                &dir::get_version_location(&man.name, &man.version)?,
                 "\\",
                 &path,
                 ";",
@@ -68,7 +68,7 @@ pub fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::e
 
         // set all envs
         for var in man.env_vars {
-            let formated_val = dir::expand_vars(&var.value, &man.name, &man.version);
+            let formated_val = parsing::parse_json::expand_vars(&var.value, &man.name, &man.version)?;
             bat_env_vars += &["set \"", &var.name, "=", &formated_val, "\"\n"].concat();
             ps_env_vars += &[
                 "Set-Item -Path Env:'",
@@ -93,7 +93,7 @@ pub fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::e
     options.overwrite = true;
     options.copy_inside = true;
 
-    let source_shims = [&dir::get_depy_dir_location(), "\\shims"].concat();
+    let source_shims = [&dir::get_depy_scoop_location()?, "\\shims"].concat();
     let local_shims = "./.depyvenv/localshims";
 
     if let Err(err) = fs_extra::dir::copy(source_shims, local_shims, &options) {

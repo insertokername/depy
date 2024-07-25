@@ -1,9 +1,9 @@
 use self::error::ShellError;
-use crate::dir;
 use std::os::windows::process::CommandExt;
 
 pub mod bucket;
 pub mod cleanup;
+pub mod dir;
 pub mod error;
 pub mod install;
 pub mod venv;
@@ -13,7 +13,7 @@ pub fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Erro
     let output = std::process::Command::new("cmd")
         .arg("/C")
         .arg(cmd)
-        .env("SCOOP", dir::get_depy_dir_location())
+        .env("SCOOP", dir::get_depy_scoop_location()?)
         .creation_flags(0x08000000)
         .output()?;
 

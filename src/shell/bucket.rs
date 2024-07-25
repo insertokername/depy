@@ -1,5 +1,5 @@
-use super::run_cmd_in_depy_dir;
-use crate::{dir, package, parsing, shell::error::ShellError};
+use super::{dir, run_cmd_in_depy_dir};
+use crate::{package, parsing, shell::error::ShellError};
 use druid::im::Vector;
 use std::os::windows::process::CommandExt;
 
@@ -86,12 +86,18 @@ fn find_bucket_origin(bucket: &std::path::PathBuf) -> Result<String, Box<dyn std
 
 /// Returns Vec<(name, url)>
 pub fn list_buckets() -> Result<Vec<(String, String)>, Box<dyn std::error::Error>> {
-    let buckets = std::fs::read_dir(dir::get_depy_dir_location() + "\\buckets").map_err(|err| {
-        Box::new(ShellError::ReadError(
-            dir::get_depy_dir_location() + "\\buckets",
-            err.to_string(),
-        ))
-    })?;
+    let buckets =
+        std::fs::read_dir(dir::get_depy_scoop_location()? + "\\buckets").map_err(|err| {
+            let depy_location = match dir::get_depy_scoop_location() {
+                Ok(ok) => ok,
+                Err(err) => return err,
+            };
+
+            Box::new(ShellError::ReadError(
+                depy_location + "\\buckets",
+                err.to_string(),
+            ))
+        })?;
 
     Ok(buckets
         .into_iter()
@@ -209,7 +215,7 @@ pub fn query_all_buckets(
 ) -> Result<Vector<package::Package>, Box<dyn std::error::Error>> {
     let mut out_vect = Vector::<package::Package>::new();
 
-    let depy_location = crate::dir::get_depy_dir_location();
+    let depy_location = dir::get_depy_scoop_location()?;
     let buckets = std::fs::read_dir(depy_location.clone() + "\\buckets")
         .map_err(|err| ShellError::ReadError(depy_location, err.to_string()))?;
 

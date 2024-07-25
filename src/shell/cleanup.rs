@@ -1,9 +1,19 @@
-use super::error::ShellError;
-use crate::{dir, shell::run_cmd_in_depy_dir};
+use super::{dir, error::ShellError};
+use crate::shell::run_cmd_in_depy_dir;
+
+/// Cleans all shims installed in the depy/scoop/shims folder
+pub fn cleanup_shims() -> Result<(), Box<dyn std::error::Error>> {
+    let str_shimpath = [&dir::get_depy_scoop_location()?, "\\shims"].concat();
+    let shimpath = std::path::Path::new(&str_shimpath);
+    if shimpath.exists() {
+        dir::clear_directory(&shimpath)?;
+    };
+    Ok(())
+}
 
 /// Purges each package that is installed in the depy/scoop directory
 pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::error::Error>> {
-    let packages: Vec<String> = std::fs::read_dir(dir::get_depy_dir_location() + "\\apps")?
+    let packages: Vec<String> = std::fs::read_dir(dir::get_depy_scoop_location()? + "\\apps")?
         .into_iter()
         .map(|file| match file {
             Ok(file) => Ok(file.file_name().to_string_lossy().to_string()),
@@ -34,7 +44,7 @@ pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::err
                 if force_uninstall {
                     run_cmd_in_depy_dir(&format!(
                         "rmdir /S /Q {}\\apps\\{package}",
-                        dir::get_depy_dir_location()
+                        dir::get_depy_scoop_location()?
                     ))
                     .expect(&format!(
                         "\nERROR: Couldn't force remove package: {package}\n"
@@ -52,7 +62,7 @@ pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::err
             if force_uninstall {
                 run_cmd_in_depy_dir(&format!(
                     "rmdir /S /Q {}\\apps\\{package}",
-                    dir::get_depy_dir_location()
+                    dir::get_depy_scoop_location()?
                 ))
                 .expect(&format!(
                     "\nERROR: Couldn't force remove package: {package}\n"
@@ -77,7 +87,7 @@ pub fn uninstall_depy(force_uninstall: bool) -> Result<(), Box<dyn std::error::E
     log::info!("Deleting depy directory...");
 
     if let Err(err) =
-        remove_dir_all::remove_dir_all(dir::get_depy_dir_location() + "\\..\\..\\depy")
+        remove_dir_all::remove_dir_all(dir::get_depy_scoop_location()? + "\\..\\..\\depy")
     {
         log::error!("Couldn't delete the depy folder %userprofile%/depy\nError was:\n{err}");
         return Err(Box::new(err));

@@ -1,5 +1,18 @@
 use super::EnvVar;
-use crate::parsing::error::ParseError;
+use crate::{parsing::error::ParseError, shell::dir};
+
+/// Gets the current system arch and returns it in a format understood by scoop
+pub fn parse_arch() -> &'static str {
+    match std::env::consts::ARCH {
+        "x86" => "32bit",
+        "x86_64" => "64bit",
+        "aarch64" => "arm64",
+        arch => {
+            log::error!("Current device uses an unrecognized architecutre!\nPossible architecutres are:\n\tx86\n\tx86_64\n\taarch64\nInstead got: {}\n\nExiting program",arch);
+            std::process::exit(1)
+        }
+    }
+}
 
 /// Takes a serde_json::Value of type env_add_path/env_set (check scoop manifest wiki page) and converts it to Strings
 /// (Mostly a helper to `get_env_paths` and `get_env_variables`)
@@ -34,15 +47,7 @@ pub fn get_env_paths(
         out_vec.extend(env_path_to_vec(&json_body["env_add_path"])?);
     };
 
-    let arch = match std::env::consts::ARCH {
-        "x86" => "32bit",
-        "x86_64" => "64bit",
-        "aarch64" => "arm64",
-        arch => {
-            log::error!("Current device uses an unrecognized architecutre!\nPossible architecutres are:\n\tx86\n\tx86_64\n\taarch64\nInstead got: {}\n\nExiting program",arch);
-            std::process::exit(1)
-        }
-    };
+    let arch = parse_arch();
     if !json_body["architecture"][arch]["env_add_path"].is_null() {
         out_vec.extend(env_path_to_vec(
             &json_body["architecture"][arch]["env_add_path"],
@@ -62,15 +67,7 @@ pub fn get_env_variables(
         out_vec.extend(EnvVar::from_value(&json_body["env_set"])?);
     }
 
-    let arch = match std::env::consts::ARCH {
-        "x86" => "32bit",
-        "x86_64" => "64bit",
-        "aarch64" => "arm64",
-        arch => {
-            log::error!("Current device uses an unrecognized architecutre!\nPossible architecutres are:\n\tx86\n\tx86_64\n\taarch64\nInstead got: {}\n\nExiting program",arch);
-            std::process::exit(1)
-        }
-    };
+    let arch = parse_arch();
 
     if !json_body["architecture"][arch]["env_set"].is_null() {
         out_vec.extend(EnvVar::from_value(
@@ -136,15 +133,7 @@ pub fn query_bin(
         }
     }
 
-    let arch = match std::env::consts::ARCH {
-        "x86" => "32bit",
-        "x86_64" => "64bit",
-        "aarch64" => "arm64",
-        arch => {
-            log::error!("Current device uses an unrecognized architecutre!\nPossible architecutres are:\n\tx86\n\tx86_64\n\taarch64\nInstead got: {}\n\nExiting program",arch);
-            std::process::exit(1)
-        }
-    };
+    let arch = parse_arch();
     if !json_body["architecture"][arch]["bin"].is_null() {
         let ok_bin = match check_bin(&json_body["architecture"][arch]["bin"], query) {
             Ok(val) => val,
@@ -184,4 +173,15 @@ pub fn read_json_file(filename: &str) -> Result<serde_json::Value, Box<dyn std::
         })?;
 
     Ok(manifest_json)
+}
+
+/// Expands variables that are needed in `env_set` and `env_add_path`
+pub fn expand_vars(
+    value: &str,
+    name: &str,
+    version: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    Ok(value
+        .replace("$dir", &(dir::get_version_location(name, version)?))
+        .replace("$architecture", &parse_arch()))
 }

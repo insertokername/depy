@@ -1,8 +1,5 @@
-use super::{bucket, venv};
-use crate::{
-    dir, package, parsing,
-    shell::{error::ShellError, run_cmd_in_depy_dir},
-};
+use super::{bucket, cleanup, dir, error::ShellError, run_cmd_in_depy_dir, venv};
+use crate::{package, parsing};
 
 /// Used to generate a script to install a single app
 fn generate_install_script(indentifier: &str, version: &str) -> String {
@@ -38,7 +35,7 @@ pub fn init_depy() -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(ShellError::UpdateError(cmd_output)));
     }
 
-    dir::cleanup_shims()?;
+    cleanup::cleanup_shims()?;
     Ok(())
 }
 
@@ -157,9 +154,9 @@ pub fn install(mut packages: Vec<package::Package>) -> Result<(), Box<dyn std::e
         install_cleanly(&man)?;
     }
 
-    dir::cleanup_shims()?;
+    cleanup::cleanup_shims()?;
     venv::make_venv(manifest_vec)?;
-    dir::cleanup_shims()?;
+    cleanup::cleanup_shims()?;
 
     Ok(())
 }
