@@ -102,7 +102,7 @@ pub fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::e
 
     let path_local_shims = std::path::Path::new(local_shims);
     paths += &[
-        path_local_shims.absolutize().unwrap().to_str().unwrap(),
+        path_local_shims.absolutize().unwrap().to_string_lossy().to_string().as_str(),
         ";",
     ]
     .concat();

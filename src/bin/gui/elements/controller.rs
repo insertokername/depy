@@ -113,16 +113,22 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 remove_bucket(data, ctx);
             }
             if let Some(()) = cmd.get(UPDATE_BUCKETS) {
-                data.bucket_list = shell::bucket::list_buckets().unwrap().into();
+                match shell::bucket::list_buckets(){
+                    Ok(bucket_list )=>data.bucket_list = bucket_list.into(),
+                    Err(err)=> log::error!("Got error while searching for buckets: {}",err.to_string())
+                }
             }
             if let Some(()) = cmd.get(INITIALIZE) {
                 if std::path::Path::new("./depy.json").exists() {
-                    data.installed_packages = Vector::from(
-                        Package::multiple_packages_from_json(
-                            &parsing::parse_json::read_json_file("./depy.json").unwrap(),
-                        )
-                        .unwrap(),
-                    );
+                    match &parsing::parse_json::read_json_file("./depy.json"){
+                                Ok(depy_contents)=>{
+                                    match Package::multiple_packages_from_json(depy_contents){
+                                        Ok(ok)=>data.installed_packages = Vector::from(ok),
+                                        Err(err)=>log::error!("Got error while parsing depy.json file!\nGot error: {}",err.to_string())
+                                    }
+                                },
+                                Err(err)=>log::error!("Got error while reading from depy file {}",err.to_string())
+                            };
                 } else {
                     log::info!("Couldn't find a depy.json file in the current directory!\n Depy will create a new file when installing the packages!")
                 }
