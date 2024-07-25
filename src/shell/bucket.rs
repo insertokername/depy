@@ -1,10 +1,7 @@
-use std::os::windows::process::CommandExt;
-
-use druid::im::Vector;
-
-use crate::{dir, package, parse_json, shell::error::ShellError};
-
 use super::run_cmd_in_depy_dir;
+use crate::{dir, package, parsing, shell::error::ShellError};
+use druid::im::Vector;
+use std::os::windows::process::CommandExt;
 
 /// Deletes all buckets installed in the depy/scoop instalation
 pub fn clean_buckets() -> Result<(), Box<dyn std::error::Error>> {
@@ -163,21 +160,21 @@ fn query_single_bucket(
 
             if no_prefix_filename.contains(query)
                 || (deep_search && {
-                    let temp = match parse_json::read_json_file(&file_path) {
+                    let temp = match parsing::parse_json::read_json_file(&file_path) {
                         Ok(ok) => ok,
                         Err(err) => {
                             log::debug!("Found an improperly formated package named: {file_path}\n Format error was: {}\n\nSkipping over it", err.to_string());
                             return Ok(None);
                         }
                     };
-                    let result = parse_json::query_bin(&temp, query)?;
+                    let result = parsing::parse_json::query_bin(&temp, query)?;
                     json_file = Some(temp);
                     result
                 })
             {
                 let temp: serde_json::Value= match json_file{
                     Some(some) => some,
-                    None => match parse_json::read_json_file(&file_path) {
+                    None => match parsing::parse_json::read_json_file(&file_path) {
                         Ok(ok) => ok,
                         Err(err) => {
                             log::debug!("Found an improperly formated package named: {file_path}\n Format error was: {}\n\nSkipping over it", err.to_string());
@@ -186,7 +183,7 @@ fn query_single_bucket(
                     }
                 };
 
-                let version=parse_json::get_version(&temp)
+                let version=parsing::parse_json::get_version(&temp)
                     .map_err(|err| ShellError::ManifestParseError(filename.clone(), err.to_string()))?;
 
                 Ok(Some(package::Package {
@@ -214,7 +211,7 @@ pub fn query_all_buckets(
 
     let depy_location = crate::dir::get_depy_dir_location();
     let buckets = std::fs::read_dir(depy_location.clone() + "\\buckets")
-        .map_err(|err| ShellError::ReadError(depy_location, err.to_string() ))?;
+        .map_err(|err| ShellError::ReadError(depy_location, err.to_string()))?;
 
     for bucket in buckets {
         let bucket = match bucket {

@@ -1,15 +1,14 @@
-use path_absolutize::Absolutize;
-
 use crate::{
-    dir, manifest,
+    dir, parsing,
     shell::{error::ShellError, run_cmd_in_depy_dir},
 };
+use path_absolutize::Absolutize;
 
 /// Creates the .depyenv folder in curent folder, containing activation scripts to temporarily add programs to the path
 ///
 /// # IMPORTANT:
 /// **This function assumes that packages are allready installed in your depy installation (%userprofile%/depy/scoop) please make sure to `install_cleanly` the app before running this**
-pub fn make_venv(manifests: Vec<manifest::Manifest>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::error::Error>> {
     let depyvenv = std::path::Path::new("./.depyvenv");
 
     if depyvenv.exists() {

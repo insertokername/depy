@@ -1,9 +1,8 @@
+use super::{bucket, venv};
 use crate::{
-    dir, manifest, package,
+    dir, package, parsing,
     shell::{error::ShellError, run_cmd_in_depy_dir},
 };
-
-use super::{bucket, venv};
 
 /// Used to generate a script to install a single app
 fn generate_install_script(indentifier: &str, version: &str) -> String {
@@ -71,7 +70,7 @@ fn attempt_install(
 /// Installs a program in the depy dir without adding it to path
 /// First tries to install from the url form (`scoop install https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/neovim.json@0.9.0`)
 /// And if that errors out tries install from a local bucket (`scoop install neovim@0.9.0`)
-pub fn install_cleanly(manifest: &manifest::Manifest) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install_cleanly(manifest: &parsing::Manifest) -> Result<(), Box<dyn std::error::Error>> {
     log::info!(
         "Installing {}@{}\nPlease do not terminate process as to not risk PATH damages...",
         manifest.name,
@@ -116,7 +115,7 @@ pub fn install(mut packages: Vec<package::Package>) -> Result<(), Box<dyn std::e
         }
     });
 
-    let mut manifest_vec: Vec<manifest::Manifest> = vec![];
+    let mut manifest_vec: Vec<parsing::Manifest> = vec![];
 
     for package in packages {
         let bucket_url = bucket::parse_bucket(&package.bucket_url);
@@ -139,7 +138,7 @@ pub fn install(mut packages: Vec<package::Package>) -> Result<(), Box<dyn std::e
             }
         };
 
-        let parsed_manifest = match manifest::Manifest::from_str(
+        let parsed_manifest = match parsing::Manifest::from_str(
             &actual_manifest,
             package.name.to_string(),
             app_url.clone(),

@@ -1,5 +1,5 @@
 use clap::Parser;
-use depy::{parse_json, shell};
+use depy::{parsing, shell};
 
 mod args;
 
@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     shell::install::init_depy()?;
 
-    let json_value = parse_json::read_json_file("./depy.json")?;
+    let json_value = parsing::parse_json::read_json_file("./depy.json")?;
 
     let packages = depy::package::Package::multiple_packages_from_json(&json_value)?;
 

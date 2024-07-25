@@ -2,7 +2,7 @@ use std::{panic::catch_unwind, thread};
 
 use depy::{
     package::{self, Package},
-    parse_json, shell,
+    parsing, shell,
 };
 use druid::{im::Vector, widget::Controller, Env, Event, EventCtx, Selector, Target, Widget};
 
@@ -119,7 +119,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 if std::path::Path::new("./depy.json").exists() {
                     data.installed_packages = Vector::from(
                         Package::multiple_packages_from_json(
-                            &parse_json::read_json_file("./depy.json").unwrap(),
+                            &parsing::parse_json::read_json_file("./depy.json").unwrap(),
                         )
                         .unwrap(),
                     );

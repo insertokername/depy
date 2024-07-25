@@ -1,6 +1,5 @@
-use crate::{dir, shell::run_cmd_in_depy_dir};
-
 use super::error::ShellError;
+use crate::{dir, shell::run_cmd_in_depy_dir};
 
 /// Purges each package that is installed in the depy/scoop directory
 pub fn clean_depy_packages(force_uninstall: bool) -> Result<(), Box<dyn std::error::Error>> {
