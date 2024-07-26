@@ -1,6 +1,11 @@
+//! This is the depy cli entry point of the program
+//! 
+//! This just calls basic depy library functions to take action on the given arguments
+//! and also reads the ./depy.json file in the same folder and installs the programs in it
 use clap::Parser;
-use depy::{parsing, shell};
+use depy::{package, parsing, shell};
 
+/// Arguments parsing
 mod args;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -65,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let json_value = parsing::parse_json::read_json_file("./depy.json")?;
 
-    let packages = depy::package::Package::multiple_packages_from_json(&json_value)?;
+    let packages = package::Package::multiple_packages_from_json(&json_value)?;
 
     if let Err(err) = shell::install::install(packages) {
         log::error!("Error occured while installing from depy file!");

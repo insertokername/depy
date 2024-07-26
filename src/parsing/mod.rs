@@ -1,6 +1,8 @@
 use error::ParseError;
 
+/// Contains the ParseError enum
 pub mod error;
+/// Json reading and transforming it to Manifest
 pub mod parse_json;
 
 /// Struct version of a manifest.json stripped down to only the necessary attributes

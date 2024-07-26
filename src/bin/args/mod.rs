@@ -1,5 +1,7 @@
 use clap::Parser;
 
+
+/// All arguemnts for the cli
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct ArgsCli {
@@ -36,6 +38,7 @@ pub struct ArgsCli {
     pub deep_search: Option<String>,
 }
 
+/// All arguments for the gui
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct ArgsGui {

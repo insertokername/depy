@@ -1,15 +1,22 @@
+//! This is the gui entry point of the program
+//! 
+//! It launches a druid window that has an `AppController` that calls depy library functions
+//! 
+//! This is also responsable for calling `depy::cleanup_path` after the program has closed
 #![windows_subsystem = "windows"]
 use clap::Parser;
 use druid::{widget::Label, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
 use gui::app_state::AppState;
 
+/// Arguments parsing
 mod args;
+/// Druid `Widgets` and `AppControllers`
 mod gui;
 
-const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString::new("Depy");
-
 fn main() {
+    const WINDOW_TITLE: LocalizedString<gui::app_state::AppState> = LocalizedString::new("Depy");
+
     let args = args::ArgsGui::parse();
     let main_window = WindowDesc::new(gui::elements::root_widget::root_widget())
         .title(WINDOW_TITLE)

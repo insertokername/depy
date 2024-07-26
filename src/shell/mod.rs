@@ -1,11 +1,17 @@
 use self::error::ShellError;
 use std::os::windows::process::CommandExt;
 
+/// Bucket related shell operations
 pub mod bucket;
+/// Cleanup / Deletion related shell operations
 pub mod cleanup;
+/// Directory reading/modifing related shell operations
 pub mod dir;
+/// Contains the ShellError enum
 pub mod error;
+/// Installation related shell operations
 pub mod install;
+/// Virtual environment related shell operations
 pub mod venv;
 
 /// runs generic command inside the depy/scoop folder

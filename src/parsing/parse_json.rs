@@ -37,7 +37,7 @@ fn env_path_to_vec(value: &serde_json::Value) -> Result<Vec<String>, Box<dyn std
         .collect::<Result<_, _>>()?)
 }
 
-/// Returns all env_add_path attributes from a manifest in the form of a Vec<EnvVar>
+/// Returns all env_add_path attributes from a manifest in the form of a `Vec<EnvVar>`
 pub fn get_env_paths(
     json_body: &serde_json::Value,
 ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
@@ -57,7 +57,7 @@ pub fn get_env_paths(
     return Ok(out_vec);
 }
 
-/// Returns all env_set attributes from a manifest in the form of a Vec<EnvVar>
+/// Returns all env_set attributes from a manifest in the form of a `Vec<EnvVar>`
 pub fn get_env_variables(
     json_body: &serde_json::Value,
 ) -> Result<Vec<EnvVar>, Box<dyn std::error::Error>> {

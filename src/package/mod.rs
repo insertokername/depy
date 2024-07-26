@@ -2,6 +2,7 @@ use druid::{Data, Lens};
 use error::PackageError;
 use serde::Serialize;
 
+/// Contains the PackageError enum
 pub mod error;
 
 /// Struct representation of a generic scoop package
