@@ -43,7 +43,7 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
 **Compilation dependencies:**
 - only rust
 
-First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the in the terminal and run `cargo build`. The project will be compiled under `target/Debug/depy-cli.exe` and `target/Debug/depy-gui.exe`.,
+First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the in the terminal and run `cargo build`. The project will be compiled under `target/debug/depy-cli.exe` and `target/debug/depy-gui.exe`.
 
 ## Usage
 
