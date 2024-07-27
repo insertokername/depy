@@ -6,7 +6,7 @@ use druid::{
 
 use crate::gui::{
     app_state::{AppState, InstalledPackageState, InstalledPackageWrapper},
-    elements::{controller, package::package_widget},
+    elements::{controller::{self, START_INSTALL}, package::package_widget},
 };
 
 pub fn make_package_search() -> impl Widget<AppState> {
@@ -85,8 +85,8 @@ pub fn make_package_search() -> impl Widget<AppState> {
         .padding(Insets::uniform(2.1));
 
     let install_button = Button::new("Install added packages")
-        .on_click(|ctx: &mut EventCtx, data: &mut AppState, _| {
-            controller::install_packages(data, ctx);
+        .on_click(|ctx: &mut EventCtx, _ , _| {
+            ctx.submit_command(START_INSTALL.to(Target::Global));
         })
         .fix_size(250.0, 40.0)
         .padding(Insets::uniform(2.1));

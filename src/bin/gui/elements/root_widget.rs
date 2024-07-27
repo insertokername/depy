@@ -32,7 +32,7 @@ pub fn root_widget() -> impl Widget<AppState> {
             ctx.submit_command(controller::INITIALIZE.to(Target::Global))
         })
         .disabled_if(|data: &AppState, _| {
-            data.initializing_depy | data.is_cleaning_depy | data.is_uninstalled
+            data.initializing_depy | data.is_cleaning_depy | data.is_uninstalled | data.is_installing
         })
         .controller(super::controller::AppController)
 }

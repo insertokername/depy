@@ -33,6 +33,7 @@ const FAILED_SEARCH: Selector<String> = Selector::new("failed-search");
 pub(super) const ADD_PACKAGE: Selector<package::Package> = Selector::new("add-package");
 pub(super) const REMOVE_PACKAGE: Selector<package::Package> = Selector::new("remove-package");
 
+pub(super) const START_INSTALL: Selector<()> = Selector::new("start-install");
 const FINISHED_INSTALL: Selector<()> = Selector::new("finished-pacakges");
 const FAILED_INSTALL: Selector<String> = Selector::new("failed-pacakges");
 
@@ -100,9 +101,16 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 }
                 ctx.set_handled()
             }
-            if let Some(()) = cmd.get(FINISHED_INSTALL) {}
+            if let Some(()) = cmd.get(START_INSTALL){
+                data.is_installing = true;
+                install_packages(data, ctx);
+            }
+            if let Some(()) = cmd.get(FINISHED_INSTALL) { 
+                data.is_installing = false;
+            }
             if let Some(err_msg) = cmd.get(FAILED_INSTALL) {
                 log::error!("Got an error while installing: {}", err_msg.to_string());
+                data.is_installing = false;
             }
             if let Some(()) = cmd.get(ADD_BUCKET) {
                 log::info!("Attempting to add bucket...");
@@ -178,7 +186,7 @@ fn flatten_err<T, FlatErr>(
     }
 }
 
-pub fn install_packages(
+fn install_packages(
     data: &mut AppState,
     ctx: &mut EventCtx,
 ) {
@@ -259,7 +267,7 @@ fn add_bucket(
     });
 }
 
-pub fn find_packages_async(
+pub(super) fn find_packages_async(
     data: &mut AppState,
     ctx: &mut EventCtx,
     deep_search: bool,

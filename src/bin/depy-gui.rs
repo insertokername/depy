@@ -3,7 +3,6 @@
 //! It launches a druid window that has an `AppController` that calls depy library functions
 //! 
 //! This is also responsable for calling `depy::cleanup_path` after the program has closed
-#![windows_subsystem = "windows"]
 use clap::Parser;
 use druid::{widget::Label, AppLauncher, LocalizedString, WindowDesc};
 use env_logger::Target;
@@ -42,6 +41,8 @@ fn main() {
         .launch(initial_state)
         .expect("Failed to launch application");
 
+    println!("cleaning up...\nPlease don't close terminal...");
+
     if let Err(err) = depy::shell::cleanup::cleanup_path() {
         let temp = AppState::default();
 
@@ -55,4 +56,6 @@ fn main() {
         .launch(temp)
         .unwrap();
     }
+
+    println!("finished!");
 }

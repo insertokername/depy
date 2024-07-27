@@ -35,6 +35,7 @@ impl LogBufferState {
 pub struct AppState {
     pub is_searching: bool,
     pub initializing_depy: bool,
+    pub is_installing: bool,
     pub is_cleaning_depy: bool,
     pub is_uninstalled: bool,
     pub search_term: String,
@@ -61,6 +62,7 @@ impl AppState {
         AppState {
             is_searching: false,
             initializing_depy: false,
+            is_installing: false,
             is_cleaning_depy: false,
             is_uninstalled: false,
             search_term: "".to_string(),
