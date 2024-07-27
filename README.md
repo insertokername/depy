@@ -4,7 +4,7 @@ Depy is a dependency manager based on scoop. It automatically installs any progr
 
 Depy automatically manages and creates virtual environemnts similar to `python -m venv` that help you manage versions of apps cleanly.
 
-A bit of documentation about the functions can be seen [here](https://insertokname.github.io/depy/depy/) if you are planning to use depy as a library
+[A bit of documentation about the functions can be seen here if you are planning to use depy as a library](https://insertokname.github.io/depy/depy/)
 ## Instalation
 
 **If you already have scoop installed** just open up powershell and run:
