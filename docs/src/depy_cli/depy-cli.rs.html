@@ -150,7 +150,7 @@
 
     <span class="kw">let </span>json_value = parsing::parse_json::read_json_file(<span class="string">"./depy.json"</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>packages = package::Package::multiple_packages_from_json(<span class="kw-2">&amp;</span>json_value)<span class="question-mark">?</span>;
+    <span class="kw">let </span>packages = package::multiple_packages_from_json(<span class="kw-2">&amp;</span>json_value)<span class="question-mark">?</span>;
 
     <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = shell::install::install(packages) {
         <span class="macro">log::error!</span>(<span class="string">"Error occured while installing from depy file!"</span>);

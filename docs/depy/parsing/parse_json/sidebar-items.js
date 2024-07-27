@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["expand_vars","get_env_paths","get_env_variables","get_version","parse_arch","query_bin","read_json_file"]};
+window.SIDEBAR_ITEMS = {"fn":["get_env_paths","get_version","parse_arch","read_json_file"]};

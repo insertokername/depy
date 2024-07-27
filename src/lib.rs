@@ -1,6 +1,6 @@
-//! Depy is a program that interacts with the [`scoop`](https://scoop.sh/) package manager
-//! that atttempts to make clean installations of programs without modifying the use PATH
-//! or leaving residual files on your system
+//! Depy is a program that interacts with the [`scoop`](https://scoop.sh/)
+//! package manager and atttempts to make clean installations of programs
+//! without modifying the use PATH or leaving residual files on your system
 //! 
 //! # Examples:
 //! 
@@ -24,9 +24,6 @@
 //! }
 //! ```
 
-/// Represents scoop packages as structs
 pub mod package;
-/// Reading / Modifing json files
 pub mod parsing;
-/// Shell commands
 pub mod shell;

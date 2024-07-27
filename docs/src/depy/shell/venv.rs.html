@@ -130,7 +130,15 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//!
+//! This internal module is responsable for creating the .depvevn folder 
+//! and all the scrips inside it.
+
+</span><span class="kw">use crate</span>::{
     parsing,
     shell::{dir, error::ShellError, run_cmd_in_depy_dir},
 };
@@ -140,7 +148,7 @@
 ///
 /// # IMPORTANT:
 /// **This function assumes that packages are allready installed in your depy installation (%userprofile%/depy/scoop) please make sure to `install_cleanly` the app before running this**
-</span><span class="kw">pub fn </span>make_venv(manifests: Vec&lt;parsing::Manifest&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_venv(manifests: Vec&lt;parsing::Manifest&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
     <span class="kw">let </span>depyvenv = std::path::Path::new(<span class="string">"./.depyvenv"</span>);
 
     <span class="kw">if </span>depyvenv.exists() {

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["make_venv"]};
+window.SIDEBAR_ITEMS = {};

@@ -245,7 +245,7 @@
 }
 
 <span class="doccomment">/// Returns all env_set attributes from a manifest in the form of a `Vec&lt;EnvVar&gt;`
-</span><span class="kw">pub fn </span>get_env_variables(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_env_variables(
     json_body: <span class="kw-2">&amp;</span>serde_json::Value,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;EnvVar&gt;, Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>out_vec: Vec&lt;EnvVar&gt; = <span class="macro">vec!</span>[];
@@ -306,7 +306,7 @@
 }
 
 <span class="doccomment">/// Checks all bins in a manifest for a certain query
-</span><span class="kw">pub fn </span>query_bin(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>query_bin(
     json_body: <span class="kw-2">&amp;</span>serde_json::Value,
     query: <span class="kw-2">&amp;</span>str,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
@@ -363,7 +363,7 @@
 }
 
 <span class="doccomment">/// Expands variables that are needed in `env_set` and `env_add_path`
-</span><span class="kw">pub fn </span>expand_vars(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>expand_vars(
     value: <span class="kw-2">&amp;</span>str,
     name: <span class="kw-2">&amp;</span>str,
     version: <span class="kw-2">&amp;</span>str,

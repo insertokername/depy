@@ -229,7 +229,7 @@
 <span class="doccomment">/// Installs a program in the depy dir without adding it to path
 /// First tries to install from the url form (`scoop install https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/neovim.json@0.9.0`)
 /// And if that errors out tries install from a local bucket (`scoop install neovim@0.9.0`)
-</span><span class="kw">pub fn </span>install_cleanly(manifest: <span class="kw-2">&amp;</span>parsing::Manifest) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>install_cleanly(manifest: <span class="kw-2">&amp;</span>parsing::Manifest) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
     <span class="macro">log::info!</span>(
         <span class="string">"Installing {}@{}\nPlease do not terminate process as to not risk PATH damages..."</span>,
         manifest.name,

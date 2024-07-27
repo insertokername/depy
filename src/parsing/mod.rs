@@ -1,13 +1,24 @@
+//! This module has a variety of functions that operate on json 
+//! files (including package manifests)
+//! 
+//! The `Manifest` and `EnvVar` structs are just internal representations 
+//! of the scoop manifest and the `env_set` attribute inside the scoop
+//! manifest. `Manifest` is instantiated inside `shell::install::install` 
+//! to be passed down to `shell::install::instalL_cleanly` and 
+//! also to `shell::venv::make_venv`
+//! 
+//! The bulk of the json parsing options are inside of `parse_json`
+
 use error::ParseError;
 
 /// Contains the ParseError enum
 pub mod error;
-/// Json reading and transforming it to Manifest
+/// Json reading and modifying
 pub mod parse_json;
 
 /// Struct version of a manifest.json stripped down to only the necessary attributes
 #[derive(Debug, PartialEq)]
-pub struct Manifest {
+pub(crate) struct Manifest {
     pub version: String,
     pub name: String,
     pub url: String,
@@ -16,7 +27,7 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    pub fn new(
+    pub(crate) fn new(
         manifest_value: &serde_json::Value,
         name: String,
         url: String,
@@ -36,7 +47,8 @@ impl Manifest {
     }
 
     /// Transforms a str of a json into a serde_json::Value and then creates a Manifest
-    pub fn from_str(
+    /// Used in the installation process when downloading raw manifest from github
+    pub(crate) fn from_str(
         manifest: &str,
         name: String,
         url: String,
@@ -50,7 +62,7 @@ impl Manifest {
 
 /// Struct version of the env_set field in a scoop manifest
 #[derive(Debug, PartialEq)]
-pub struct EnvVar {
+pub(crate) struct EnvVar {
     pub name: String,
     pub value: String,
 }
@@ -61,7 +73,7 @@ impl EnvVar {
     }
 
     /// Transforms a serde val into a vec of environment variables
-    pub fn from_value(
+    pub(crate) fn from_value(
         value: &serde_json::Value,
     ) -> Result<Vec<EnvVar>, Box<dyn std::error::Error>> {
         let env_var_iter = value

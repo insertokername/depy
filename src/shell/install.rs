@@ -67,7 +67,7 @@ fn attempt_install(
 /// Installs a program in the depy dir without adding it to path
 /// First tries to install from the url form (`scoop install https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/neovim.json@0.9.0`)
 /// And if that errors out tries install from a local bucket (`scoop install neovim@0.9.0`)
-pub fn install_cleanly(manifest: &parsing::Manifest) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn install_cleanly(manifest: &parsing::Manifest) -> Result<(), Box<dyn std::error::Error>> {
     log::info!(
         "Installing {}@{}\nPlease do not terminate process as to not risk PATH damages...",
         manifest.name,

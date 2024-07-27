@@ -355,7 +355,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{panic::catch_unwind, thread};
 
 <span class="kw">use </span>depy::{
-    package::{<span class="self">self</span>, Package},
+    package,
     parsing, shell,
 };
 <span class="kw">use </span>druid::{im::Vector, widget::Controller, Env, Event, EventCtx, Selector, Target, Widget};
@@ -476,7 +476,7 @@
                 <span class="kw">if </span>std::path::Path::new(<span class="string">"./depy.json"</span>).exists() {
                     <span class="kw">match </span><span class="kw-2">&amp;</span>parsing::parse_json::read_json_file(<span class="string">"./depy.json"</span>){
                                 <span class="prelude-val">Ok</span>(depy_contents)=&gt;{
-                                    <span class="kw">match </span>Package::multiple_packages_from_json(depy_contents){
+                                    <span class="kw">match </span>package::multiple_packages_from_json(depy_contents){
                                         <span class="prelude-val">Ok</span>(ok)=&gt;data.installed_packages = Vector::from(ok),
                                         <span class="prelude-val">Err</span>(err)=&gt;<span class="macro">log::error!</span>(<span class="string">"Got error while parsing depy.json file!\nGot error: {}"</span>,err.to_string())
                                     }
@@ -542,7 +542,7 @@
         .into_iter()
         .collect::&lt;Vec&lt;package::Package&gt;&gt;();
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = package::Package::save_packages_to_json(<span class="kw-2">&amp;</span>package_vec){
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = package::save_packages_to_json(<span class="kw-2">&amp;</span>package_vec){
         <span class="macro">log::error!</span>(<span class="string">"Got an error while trying to save packages to depy.json!\nError:{}"</span>, err.to_string());
     };
 

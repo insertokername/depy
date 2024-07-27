@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["error","package_derived_lenses"],"struct":["Package"]};
+window.SIDEBAR_ITEMS = {"fn":["multiple_packages_from_json","save_packages_to_json","single_package_from_json"],"mod":["error","package_derived_lenses"],"struct":["Package"]};

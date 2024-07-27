@@ -58,7 +58,7 @@ pub fn get_env_paths(
 }
 
 /// Returns all env_set attributes from a manifest in the form of a `Vec<EnvVar>`
-pub fn get_env_variables(
+pub(crate) fn get_env_variables(
     json_body: &serde_json::Value,
 ) -> Result<Vec<EnvVar>, Box<dyn std::error::Error>> {
     let mut out_vec: Vec<EnvVar> = vec![];
@@ -119,7 +119,7 @@ fn check_bin(
 }
 
 /// Checks all bins in a manifest for a certain query
-pub fn query_bin(
+pub(crate) fn query_bin(
     json_body: &serde_json::Value,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
@@ -176,7 +176,7 @@ pub fn read_json_file(filename: &str) -> Result<serde_json::Value, Box<dyn std::
 }
 
 /// Expands variables that are needed in `env_set` and `env_add_path`
-pub fn expand_vars(
+pub(crate) fn expand_vars(
     value: &str,
     name: &str,
     version: &str,

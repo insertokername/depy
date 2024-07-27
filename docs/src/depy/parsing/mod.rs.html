@@ -93,16 +93,39 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>error::ParseError;
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! This module has a variety of functions that operate on json 
+//! files (including package manifests)
+//! 
+//! The `Manifest` and `EnvVar` structs are just internal representations 
+//! of the scoop manifest and the `env_set` attribute inside the scoop
+//! manifest. `Manifest` is instantiated inside `shell::install::install` 
+//! to be passed down to `shell::install::instalL_cleanly` and 
+//! also to `shell::venv::make_venv`
+//! 
+//! The bulk of the json parsing options are inside of `parse_json`
+
+</span><span class="kw">use </span>error::ParseError;
 
 <span class="doccomment">/// Contains the ParseError enum
 </span><span class="kw">pub mod </span>error;
-<span class="doccomment">/// Json reading and transforming it to Manifest
+<span class="doccomment">/// Json reading and modifying
 </span><span class="kw">pub mod </span>parse_json;
 
 <span class="doccomment">/// Struct version of a manifest.json stripped down to only the necessary attributes
 </span><span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub struct </span>Manifest {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Manifest {
     <span class="kw">pub </span>version: String,
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>url: String,
@@ -111,7 +134,7 @@
 }
 
 <span class="kw">impl </span>Manifest {
-    <span class="kw">pub fn </span>new(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
         manifest_value: <span class="kw-2">&amp;</span>serde_json::Value,
         name: String,
         url: String,
@@ -131,7 +154,8 @@
     }
 
     <span class="doccomment">/// Transforms a str of a json into a serde_json::Value and then creates a Manifest
-    </span><span class="kw">pub fn </span>from_str(
+    /// Used in the installation process when downloading raw manifest from github
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_str(
         manifest: <span class="kw-2">&amp;</span>str,
         name: String,
         url: String,
@@ -145,7 +169,7 @@
 
 <span class="doccomment">/// Struct version of the env_set field in a scoop manifest
 </span><span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub struct </span>EnvVar {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EnvVar {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>value: String,
 }
@@ -156,7 +180,7 @@
     }
 
     <span class="doccomment">/// Transforms a serde val into a vec of environment variables
-    </span><span class="kw">pub fn </span>from_value(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_value(
         value: <span class="kw-2">&amp;</span>serde_json::Value,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;EnvVar&gt;, Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
         <span class="kw">let </span>env_var_iter = value

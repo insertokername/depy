@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["error","parse_json"],"struct":["EnvVar","Manifest"]};
+window.SIDEBAR_ITEMS = {"mod":["error","parse_json"]};

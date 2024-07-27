@@ -1,3 +1,6 @@
+//! This module is responsable for system related operations like 
+//! powershell or the file system
+
 use self::error::ShellError;
 use std::os::windows::process::CommandExt;
 
@@ -15,6 +18,12 @@ pub mod install;
 pub mod venv;
 
 /// runs generic command inside the depy/scoop folder
+/// 
+/// # Example
+/// This example removes the main bucket of the depy scoop install
+/// ```
+/// let cmd_output = match run_cmd_in_depy_dir(&format!("scoop bucket rm main"))?;
+/// ```
 pub fn run_cmd_in_depy_dir(cmd: &str) -> Result<String, Box<dyn std::error::Error>> {
     let output = std::process::Command::new("cmd")
         .arg("/C")

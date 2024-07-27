@@ -1,3 +1,7 @@
+//!
+//! This internal module is responsable for creating the .depvevn folder 
+//! and all the scrips inside it.
+
 use crate::{
     parsing,
     shell::{dir, error::ShellError, run_cmd_in_depy_dir},
@@ -8,7 +12,7 @@ use path_absolutize::Absolutize;
 ///
 /// # IMPORTANT:
 /// **This function assumes that packages are allready installed in your depy installation (%userprofile%/depy/scoop) please make sure to `install_cleanly` the app before running this**
-pub fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn make_venv(manifests: Vec<parsing::Manifest>) -> Result<(), Box<dyn std::error::Error>> {
     let depyvenv = std::path::Path::new("./.depyvenv");
 
     if depyvenv.exists() {

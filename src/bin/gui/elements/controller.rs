@@ -1,7 +1,7 @@
 use std::{panic::catch_unwind, thread};
 
 use depy::{
-    package::{self, Package},
+    package,
     parsing, shell,
 };
 use druid::{im::Vector, widget::Controller, Env, Event, EventCtx, Selector, Target, Widget};
@@ -122,7 +122,7 @@ impl<W: Widget<AppState>> Controller<AppState, W> for AppController {
                 if std::path::Path::new("./depy.json").exists() {
                     match &parsing::parse_json::read_json_file("./depy.json"){
                                 Ok(depy_contents)=>{
-                                    match Package::multiple_packages_from_json(depy_contents){
+                                    match package::multiple_packages_from_json(depy_contents){
                                         Ok(ok)=>data.installed_packages = Vector::from(ok),
                                         Err(err)=>log::error!("Got error while parsing depy.json file!\nGot error: {}",err.to_string())
                                     }
@@ -188,7 +188,7 @@ pub fn install_packages(
         .into_iter()
         .collect::<Vec<package::Package>>();
 
-    if let Err(err) = package::Package::save_packages_to_json(&package_vec){
+    if let Err(err) = package::save_packages_to_json(&package_vec){
         log::error!("Got an error while trying to save packages to depy.json!\nError:{}", err.to_string());
     };
 

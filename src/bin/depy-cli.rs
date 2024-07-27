@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let json_value = parsing::parse_json::read_json_file("./depy.json")?;
 
-    let packages = package::Package::multiple_packages_from_json(&json_value)?;
+    let packages = package::multiple_packages_from_json(&json_value)?;
 
     if let Err(err) = shell::install::install(packages) {
         log::error!("Error occured while installing from depy file!");
