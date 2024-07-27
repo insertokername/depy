@@ -56,7 +56,7 @@ Open a terminal in the folder you wish to make a virtual environment in, run the
 First we need to create a `depy.json` file that will declare all of our desired programs.
 
 `depy.json`
-```
+```json
 [
     {
         "bucket_url": "https://github.com/ScoopInstaller/Main",
@@ -76,13 +76,13 @@ First we need to create a `depy.json` file that will declare all of our desired 
 In this depy.json file we declared that we need to install `grep` from the `main` bucket, by using the `latest` tag it will always be set to the latest version available when updating with depy , and python version 3.6.8 from the `versions` bucket. Buckets are explained [here](#buckets).
 
 After we define our `depy.json` we can just run:
-```
+```console
 depy
 ``` 
 And everything will install automatically without polluting the environment PATH(in most cases).
 
 Last thing we need to do is run:
-```
+```console
 .depyvenv\activate
 ```
 Now all of our apps will be available to us and `(CURENTLY IN DEV SHELL)` should appear in front of the prompt. Until you close the shell you will have access to all the specified versions of the programs. On subsequent runs you will only need o run the activate script.
@@ -106,7 +106,7 @@ You can also make your own [custom buckets](#adding-a-custom-bucket)
 
 The format of a depy.json looks like this:
 
-```
+```json5
 [   //an array of "packages"
     
     {   //each package is defined by:
@@ -139,7 +139,7 @@ First install rust from [rustup](https://rustup.rs/). After that download the so
 The garbage clean command uninstalls all packages from the cache, freeing up some space. 
 
 **Cli**
-```
+```console
 depy -g
 ```
 **Gui**
@@ -150,7 +150,7 @@ In the `garbage clean` menu, hit the `Cleanup Packages` button
 Uninstalling is done in two steps:
 
 **Cli:**
-```
+```console
 depy -d
 ```
 **Gui:**
@@ -159,7 +159,7 @@ In the `garbage clean` menu hit the `Uninstall Depy` button.
 This uninstalls all apps under `%userprofile%/depy/scoop`.
 
 Second:
-```
+```console
 scoop uninstall depy
 ```
 This just uninstalls the exe itself which is very small.
