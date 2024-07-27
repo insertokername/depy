@@ -9,7 +9,7 @@ Depy automatically manages and creates virtual environemnts similar to `python -
 
 **If you already have scoop installed** just open up powershell and run:
 
-```
+```console
 scoop install git
 scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
 ```
@@ -21,25 +21,25 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
     First make sure you have [VCRUNTIME](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) 
 
     And then open powershell and run:
-    ```
+    ```powershell
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
     scoop install git
     ```
     Close and reopen powershell and then run:
-    ```
+    ```console
     scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
     ```
 
 - **for 32 bit**:
     Download [git](https://git-scm.com/downloads), make sure you have [VCRUNTIME](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) 
     And then open powershell and run:
-    ```
+    ```powershell
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
     ```
     Close and reopen powershell and then run:
-    ```
+    ```console
     scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
     ```
 
