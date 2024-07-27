@@ -25,9 +25,6 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
     scoop install git
-    ```
-    Close and reopen powershell and then run:
-    ```console
     scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
     ```
 
@@ -37,9 +34,6 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
     ```powershell
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-    ```
-    Close and reopen powershell and then run:
-    ```console
     scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
     ```
 
