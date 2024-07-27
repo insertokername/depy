@@ -38,6 +38,13 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
 
 **Now you're done!**
 
+## Compilation
+
+**Compilation dependencies:**
+- only rust
+
+First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the in the terminal and run `cargo build`. The project will be compiled under `target/Debug/depy-cli.exe` and `target/Debug/depy-gui.exe`.,
+
 ## Usage
 
 ### Gui
@@ -120,13 +127,6 @@ The format of a depy.json looks like this:
 
 First you should read a bit about scoop buckets from [here](https://github.com/ScoopInstaller/Scoop/wiki/Buckets). The proceed to use the [bucket template repo](https://github.com/ScoopInstaller/BucketTemplate) and **make sure your bucket directory is on the master branch.** After that you can just put the link to you repository in the `bucket_url` argument of the program that requires it (something like this: `"bucket_url":"https://github.com/ScoopInstaller/Extras"`)
 
-## Compilation
-
-**Compilation dependencies:**
-- only rust
-
-First install rust from [rustup](https://rustup.rs/). After that download the source code from github. Finally open the project in your preferred code editor and run `cargo build`. The project will be compiled under `target/Debug/depy.exe` and `target/Debug/depy-gui.exe`.,
-
 ## Garbage clean 
 
 The garbage clean command uninstalls all packages from the cache, freeing up some space. 
@@ -156,6 +156,7 @@ Second:
 scoop uninstall depy
 ```
 This just uninstalls the exe itself which is very small.
+
 
 ## Curently working on:
 
