@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["InstalledPackageState","WindowSection"],"mod":["app_state_derived_lenses","installed_package_wrapper_derived_lenses","log_buffer_state_derived_lenses"],"struct":["AppState","InstalledPackageWrapper","LogBufferState"]};

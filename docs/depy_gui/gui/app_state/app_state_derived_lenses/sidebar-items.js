@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["add_bucket_name_field","add_bucket_url_field","bucket_list","console_buff","cur_window","initializing_depy","installed_packages","is_cleaning_depy","is_searching","is_uninstalled","last_search_term","no_packages_found","package_list","search_term"]};

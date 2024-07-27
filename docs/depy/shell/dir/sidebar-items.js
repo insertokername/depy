@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["clear_directory","get_depy_scoop_location","get_scoop_dir_location","get_version_location","init_depy_dir"]};

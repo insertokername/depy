@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"depy_cli":[["impl Parser for <a class=\"struct\" href=\"depy_cli/args/struct.ArgsCli.html\" title=\"struct depy_cli::args::ArgsCli\">ArgsCli</a>"],["impl Parser for <a class=\"struct\" href=\"depy_cli/args/struct.ArgsGui.html\" title=\"struct depy_cli::args::ArgsGui\">ArgsGui</a>"]],
+"depy_gui":[["impl Parser for <a class=\"struct\" href=\"depy_gui/args/struct.ArgsCli.html\" title=\"struct depy_gui::args::ArgsCli\">ArgsCli</a>"],["impl Parser for <a class=\"struct\" href=\"depy_gui/args/struct.ArgsGui.html\" title=\"struct depy_gui::args::ArgsGui\">ArgsGui</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

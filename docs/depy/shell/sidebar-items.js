@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["run_cmd_in_depy_dir"],"mod":["bucket","cleanup","dir","error","install","venv"]};

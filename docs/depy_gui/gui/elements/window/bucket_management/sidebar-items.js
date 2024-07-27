@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["bucket_list_elem","make_bucket_management"]};

@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["depy","depy_cli","depy_gui"];

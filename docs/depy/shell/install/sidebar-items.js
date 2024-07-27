@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["init_depy","install","install_cleanly"]};

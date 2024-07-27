@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"depy_gui":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.80.0/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a> for <a class=\"struct\" href=\"depy_gui/gui/logger/struct.LogBuffer.html\" title=\"struct depy_gui::gui::logger::LogBuffer\">LogBuffer</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

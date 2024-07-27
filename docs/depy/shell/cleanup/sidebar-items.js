@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["clean_depy_packages","cleanup_path","cleanup_shims","uninstall_depy"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["RELEASE_SCROLL","SCROLL_BOTTOM"],"fn":["make_console"],"struct":["ConsoleScroll"]};

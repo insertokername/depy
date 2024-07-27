@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["add_bucket","clean_buckets","list_buckets","parse_bucket","query_all_buckets","remove_bucket"]};

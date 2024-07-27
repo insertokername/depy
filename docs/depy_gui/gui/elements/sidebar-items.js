@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["console","controller","package","precent_height","root_widget","side_menu","window"]};

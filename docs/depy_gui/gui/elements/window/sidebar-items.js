@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["make_window_picker"],"mod":["bucket_management","garbage_clean","package_search"]};
