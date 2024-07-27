@@ -7,10 +7,9 @@ Depy automatically manages and creates virtual environemnts similar to `python -
 [A bit of documentation about the functions can be seen here if you are planning to use depy as a library](https://insertokname.github.io/depy/depy/)
 ## Instalation
 
-**If you already have scoop installed** just open up powershell and run:
+**If you already have scoop and git installed** just open up powershell and run:
 
 ```console
-scoop install git
 scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
 ```
 
