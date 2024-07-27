@@ -157,5 +157,9 @@ scoop uninstall depy
 ```
 This just uninstalls the exe itself which is very small.
 
+## Curently working on:
+
+As of now if you install an app that has a startmenu shortcut the startmenu will be polluted. To combat this i have made a pull request to the scoop repo with a new flag that allows apps to install a package without polluting the startmenu, curently waiting for aproval.
+
 ## Resources used
 While making this project I mainly had to read the [scoop wiki](https://github.com/ScoopInstaller/Main/tree/) and some crate documentations like for example  [druid](https://docs.rs/druid/latest/druid/) 
