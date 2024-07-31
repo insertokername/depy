@@ -25,6 +25,7 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
     scoop install git
     scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
+    
     ```
 
 - **for 32 bit**:
@@ -34,6 +35,7 @@ scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifes
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
     scoop install https://raw.githubusercontent.com/insertokername/depy/main/manifest/depy.json
+    
     ```
 
 **Now you're done!**
