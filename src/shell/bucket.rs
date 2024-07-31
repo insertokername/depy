@@ -67,7 +67,7 @@ fn find_bucket_origin(bucket: &std::path::PathBuf) -> Result<String, Box<dyn std
     let output = std::process::Command::new("cmd")
         .arg("/C")
         .arg(format!(
-            "git -C {} config remote.origin.url",
+            "cd {}  & git config remote.origin.url",
             bucket.to_string_lossy()
         ))
         .creation_flags(0x08000000)
